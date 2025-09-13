@@ -57,6 +57,10 @@ export const useSimulation = () => {
     }
   };
 
+  const deleteConnection = (connectionIds: string[]) => {
+    setConnections(prev => prev.filter(conn => !connectionIds.includes(conn.id)));
+  };
+
   const startConnection = () => {
     if (selectedNode) {
       setIsConnecting(true);
@@ -109,6 +113,7 @@ export const useSimulation = () => {
     deleteNode,
     updateNodePosition,
     addConnection,
+    deleteConnection,
     startConnection,
     finishConnection,
     cancelConnection,

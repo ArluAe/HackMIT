@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useEffect, useRef } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -28,6 +28,7 @@ interface ReactFlowCanvasProps {
   onNodeMouseMove: (x: number, y: number) => void;
   onNodeMouseUp: () => void;
   onConnectionFinish: (fromId: string, toId: string) => void;
+  onConnectionDelete: (connectionIds: string[]) => void;
   onGetViewportCenter?: (getCenter: () => { x: number; y: number }) => void;
   onEditNode: (node: SimulationNode) => void;
 }
@@ -44,10 +45,13 @@ export default function ReactFlowCanvas({
   onNodeMouseMove,
   onNodeMouseUp,
   onConnectionFinish,
+  onConnectionDelete,
   onGetViewportCenter,
   onEditNode
 }: ReactFlowCanvasProps) {
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
+  const [selectedEdges, setSelectedEdges] = useState<string[]>([]);
+  const selectedEdgesRef = useRef<string[]>([]);
   // Convert simulation nodes to React Flow nodes
   // Only set initial position for new nodes, let React Flow manage positions
   const reactFlowNodes: Node[] = useMemo(() => 
@@ -68,16 +72,49 @@ export default function ReactFlowCanvas({
       target: conn.to,
       type: 'smoothstep',
       animated: conn.status === 'active',
+      selected: selectedEdges.includes(conn.id),
       style: {
-        stroke: conn.status === 'active' ? 'rgba(147, 51, 234, 0.6)' : 'rgba(71, 85, 105, 0.4)',
-        strokeWidth: 2,
-        opacity: 0.7,
+        stroke: selectedEdges.includes(conn.id) 
+          ? 'rgba(59, 130, 246, 0.9)'  // Blue when selected
+          : conn.status === 'active' 
+            ? 'rgba(147, 51, 234, 0.6)'  // Purple when active
+            : 'rgba(71, 85, 105, 0.4)',  // Gray when inactive
+        strokeWidth: selectedEdges.includes(conn.id) ? 3 : 2,  // Thicker when selected
+        opacity: selectedEdges.includes(conn.id) ? 1 : 0.7,    // More opaque when selected
       },
-    })), [connections]
+    })), [connections, selectedEdges]
   );
 
   const [reactFlowNodesState, setNodes, onNodesChange] = useNodesState(reactFlowNodes);
   const [reactFlowEdgesState, setEdges, onEdgesChange] = useEdgesState(reactFlowEdges);
+
+  // Track selected edges for keyboard deletion
+  const onSelectionChange = useCallback(({ edges }: { edges: Edge[] }) => {
+    const edgeIds = edges.map(edge => edge.id);
+    console.log('Selection changed:', edgeIds);
+    setSelectedEdges(edgeIds);
+    selectedEdgesRef.current = edgeIds;
+  }, []);
+
+  // Handle keyboard delete for selected edges
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedEdgesRef.current.length > 0) {
+        event.preventDefault();
+        console.log('Deleting edges:', selectedEdgesRef.current);
+        
+        // Call parent callback to delete connections from simulation data
+        onConnectionDelete(selectedEdgesRef.current);
+        
+        // Clear selection
+        setSelectedEdges([]);
+        selectedEdgesRef.current = [];
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onConnectionDelete]);
 
   // Handle node additions and deletions while preserving positions
   useEffect(() => {
@@ -161,6 +198,7 @@ export default function ReactFlowCanvas({
         onNodeDragStop={onNodeDragStop}
         onPaneClick={onPaneClick}
         onInit={onInit}
+        onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
         attributionPosition="bottom-left"
         className="bg-gray-900"
@@ -181,7 +219,6 @@ export default function ReactFlowCanvas({
         />
         <Controls 
           className="bg-gray-800 border-gray-600"
-          style={{ button: { backgroundColor: '#1f2937', color: '#d1d5db' } }}
         />
         <MiniMap 
           className="bg-gray-800 border-gray-600"

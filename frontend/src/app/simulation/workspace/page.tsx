@@ -24,6 +24,7 @@ export default function SimulationWorkspace() {
     deleteNode,
     updateNodePosition,
     addConnection,
+    deleteConnection,
     toggleSimulation,
     getNetworkStats
   } = useSimulation();
@@ -84,6 +85,10 @@ export default function SimulationWorkspace() {
     setEditingNode(null);
   }, []);
 
+  const handleConnectionDelete = useCallback((connectionIds: string[]) => {
+    deleteConnection(connectionIds);
+  }, [deleteConnection]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -108,6 +113,7 @@ export default function SimulationWorkspace() {
           onNodeMouseMove={handleNodeMouseMove}
           onNodeMouseUp={handleNodeMouseUp}
           onConnectionFinish={handleConnectionFinish}
+          onConnectionDelete={handleConnectionDelete}
           onGetViewportCenter={handleGetViewportCenter}
           onEditNode={handleEditNode}
         />
