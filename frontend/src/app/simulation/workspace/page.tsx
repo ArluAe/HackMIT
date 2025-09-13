@@ -29,7 +29,8 @@ export default function SimulationWorkspace() {
 
 
   const handleNodeMouseMove = (x: number, y: number) => {
-    // React Flow handles node positioning internally
+    // React Flow handles positioning internally
+    // We don't need to sync positions back to simulation state
   };
 
   const handleNodeMouseUp = () => {

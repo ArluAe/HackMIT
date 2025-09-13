@@ -43,11 +43,12 @@ export default function ReactFlowCanvas({
   onConnectionFinish
 }: ReactFlowCanvasProps) {
   // Convert simulation nodes to React Flow nodes
+  // Only set initial position for new nodes, let React Flow manage positions
   const reactFlowNodes: Node[] = useMemo(() => 
     nodes.map(node => ({
       id: node.id,
       type: 'energyNode',
-      position: { x: node.x, y: node.y },
+      position: { x: node.x, y: node.y }, // Initial position only
       data: node,
       selected: selectedNode === node.id,
     })), [nodes, selectedNode]
@@ -72,10 +73,25 @@ export default function ReactFlowCanvas({
   const [reactFlowNodesState, setNodes, onNodesChange] = useNodesState(reactFlowNodes);
   const [reactFlowEdgesState, setEdges, onEdgesChange] = useEdgesState(reactFlowEdges);
 
-  // Update React Flow state when props change
+  // Handle node additions and deletions while preserving positions
   useEffect(() => {
-    setNodes(reactFlowNodes);
-  }, [reactFlowNodes, setNodes]);
+    const currentIds = new Set(reactFlowNodesState.map(n => n.id));
+    const newIds = new Set(reactFlowNodes.map(n => n.id));
+    
+    // Find nodes that need to be added or removed
+    const nodesToAdd = reactFlowNodes.filter(node => !currentIds.has(node.id));
+    const nodesToRemove = Array.from(currentIds).filter(id => !newIds.has(id));
+    
+    if (nodesToAdd.length > 0 || nodesToRemove.length > 0) {
+      setNodes(prevNodes => {
+        // Remove deleted nodes
+        let updatedNodes = prevNodes.filter(node => !nodesToRemove.includes(node.id));
+        // Add new nodes simply
+        updatedNodes = [...updatedNodes, ...nodesToAdd];
+        return updatedNodes;
+      });
+    }
+  }, [reactFlowNodes, reactFlowNodesState, setNodes]);
 
   useEffect(() => {
     setEdges(reactFlowEdges);
@@ -91,13 +107,11 @@ export default function ReactFlowCanvas({
     onNodeClick(node.id);
   }, [onNodeClick]);
 
-  const onNodeDrag: NodeDragHandler = useCallback((event, node) => {
-    onNodeMouseMove(node.position.x, node.position.y);
-  }, [onNodeMouseMove]);
-
   const onNodeDragStop: NodeDragHandler = useCallback((event, node) => {
+    // Update simulation state with final position when drag ends
+    onNodeMouseMove(node.position.x, node.position.y);
     onNodeMouseUp();
-  }, [onNodeMouseUp]);
+  }, [onNodeMouseMove, onNodeMouseUp]);
 
   const onPaneClick = useCallback(() => {
     onNodeClick(null);
@@ -112,11 +126,9 @@ export default function ReactFlowCanvas({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClickHandler}
-        onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
-        fitView
         attributionPosition="bottom-left"
         className="bg-gray-900"
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
