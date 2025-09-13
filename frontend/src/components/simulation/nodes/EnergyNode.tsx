@@ -5,7 +5,12 @@ import { Handle, Position, NodeProps } from 'reactflow';
 import { Node } from '@/types/simulation';
 
 interface EnergyNodeProps extends NodeProps {
-  data: Node & { onEditNode?: (node: Node) => void };
+  data: Node & { 
+    onEditNode?: (node: Node) => void;
+    onToggleSelection?: (nodeId: string) => void;
+    isSelected?: boolean;
+    isSelectionMode?: boolean;
+  };
 }
 
 const EnergyNode = memo(({ data, selected }: EnergyNodeProps) => {
@@ -13,6 +18,13 @@ const EnergyNode = memo(({ data, selected }: EnergyNodeProps) => {
     e.stopPropagation();
     if (data.onEditNode) {
       data.onEditNode(data);
+    }
+  };
+
+  const handleNodeClick = (e: React.MouseEvent) => {
+    if (data.isSelectionMode && data.onToggleSelection) {
+      e.stopPropagation();
+      data.onToggleSelection(data.id);
     }
   };
   const getNodeColor = (node: Node) => {
@@ -107,7 +119,10 @@ const EnergyNode = memo(({ data, selected }: EnergyNodeProps) => {
   };
 
   return (
-    <div className={`relative ${selected ? 'ring-1 ring-blue-300/40' : ''}`}>
+    <div 
+      className={`relative ${selected ? 'ring-1 ring-blue-300/40' : ''} ${data.isSelected ? 'ring-2 ring-green-400/60' : ''}`}
+      onClick={handleNodeClick}
+    >
       {/* Input Handle */}
       <Handle
         type="target"

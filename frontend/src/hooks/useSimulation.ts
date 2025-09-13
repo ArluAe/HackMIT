@@ -9,6 +9,12 @@ export const useSimulation = () => {
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStart, setConnectionStart] = useState<string | null>(null);
+  
+  // Hierarchical and selection state
+  const [currentLayer, setCurrentLayer] = useState(0);
+  const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [layerHistory, setLayerHistory] = useState<number[]>([0]);
 
   const addNode = (type: Node['type'], viewportCenter?: { x: number; y: number }) => {
     const newNode: Node = {
@@ -18,7 +24,10 @@ export const useSimulation = () => {
       y: viewportCenter?.y || (300 + Math.random() * 200),
       name: `${type.charAt(0).toUpperCase() + type.slice(1)} ${nodes.length + 1}`,
       power: Math.floor(Math.random() * 500) + 100,
-      status: 'active'
+      status: 'active',
+      layer: currentLayer,
+      childNodes: [],
+      isGroup: type === 'group'
     };
     setNodes([...nodes, newNode]);
   };
@@ -94,6 +103,72 @@ export const useSimulation = () => {
     };
   };
 
+  // Hierarchical functions
+  const createGroupNode = (selectedNodeIds: string[]) => {
+    if (selectedNodeIds.length < 2) return;
+    
+    // Create a family ID for the selected nodes
+    const familyId = `family_${Date.now()}`;
+    
+    // Update selected nodes to belong to the same family
+    setNodes(prevNodes => 
+      prevNodes.map(node => 
+        selectedNodeIds.includes(node.id) 
+          ? { ...node, familyId }
+          : node
+      )
+    );
+    
+    // Clear selection
+    setSelectedNodes([]);
+  };
+
+  // Get nodes that belong to the same family
+  const getFamilyNodes = (familyId: string) => {
+    return nodes.filter(node => node.familyId === familyId);
+  };
+
+  // Get all unique families
+  const getFamilies = () => {
+    const familyIds = [...new Set(nodes.map(node => node.familyId).filter(Boolean))];
+    return familyIds.map(familyId => ({
+      id: familyId,
+      nodes: getFamilyNodes(familyId as string)
+    }));
+  };
+
+  const navigateToLayer = (layer: number) => {
+    setCurrentLayer(layer);
+    setLayerHistory(prev => [...prev, layer]);
+  };
+
+  const navigateUp = () => {
+    if (currentLayer > 0) {
+      navigateToLayer(currentLayer - 1);
+    }
+  };
+
+  const navigateDown = (groupNodeId: string) => {
+    // groupNodeId is actually the familyId
+    const familyNodes = nodes.filter(n => n.familyId === groupNodeId);
+    if (familyNodes.length > 0) {
+      // Switch to layer 0 to show individual nodes
+      navigateToLayer(0);
+    }
+  };
+
+  const toggleNodeSelection = (nodeId: string) => {
+    setSelectedNodes(prev => 
+      prev.includes(nodeId) 
+        ? prev.filter(id => id !== nodeId)
+        : [...prev, nodeId]
+    );
+  };
+
+  const clearSelection = () => {
+    setSelectedNodes([]);
+  };
+
   return {
     // State
     nodes,
@@ -103,6 +178,12 @@ export const useSimulation = () => {
     draggedNode,
     isConnecting,
     connectionStart,
+    
+    // Hierarchical state
+    currentLayer,
+    selectedNodes,
+    isSelectionMode,
+    layerHistory,
     
     // Actions
     setNodes,
@@ -118,6 +199,17 @@ export const useSimulation = () => {
     finishConnection,
     cancelConnection,
     toggleSimulation,
-    getNetworkStats
+    getNetworkStats,
+    
+    // Hierarchical actions
+    createGroupNode,
+    getFamilyNodes,
+    getFamilies,
+    navigateToLayer,
+    navigateUp,
+    navigateDown,
+    toggleNodeSelection,
+    clearSelection,
+    setIsSelectionMode
   };
 };

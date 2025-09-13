@@ -26,7 +26,20 @@ export default function SimulationWorkspace() {
     addConnection,
     deleteConnection,
     toggleSimulation,
-    getNetworkStats
+    getNetworkStats,
+    // Hierarchical state
+    currentLayer,
+    selectedNodes,
+    isSelectionMode,
+    createGroupNode,
+    getFamilyNodes,
+    getFamilies,
+    navigateToLayer,
+    navigateUp,
+    navigateDown,
+    toggleNodeSelection,
+    clearSelection,
+    setIsSelectionMode
   } = useSimulation();
 
   const selectedNodeData = selectedNode ? nodes.find(n => n.id === selectedNode) || null : null;
@@ -89,12 +102,36 @@ export default function SimulationWorkspace() {
     deleteConnection(connectionIds);
   }, [deleteConnection]);
 
+  // Hierarchical handlers
+  const handleCreateGroup = useCallback(() => {
+    createGroupNode(selectedNodes);
+  }, [createGroupNode, selectedNodes]);
+
+  const handleToggleSelectionMode = useCallback(() => {
+    setIsSelectionMode(!isSelectionMode);
+    if (isSelectionMode) {
+      clearSelection();
+    }
+  }, [isSelectionMode, setIsSelectionMode, clearSelection]);
+
+  const handleNavigateDown = useCallback((groupNodeId: string) => {
+    navigateDown(groupNodeId);
+  }, [navigateDown]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <SimulationHeader
         isSimulationRunning={isSimulationRunning}
         onToggleSimulation={toggleSimulation}
+        currentLayer={currentLayer}
+        selectedNodes={selectedNodes}
+        isSelectionMode={isSelectionMode}
+        onToggleSelectionMode={handleToggleSelectionMode}
+        onCreateGroup={handleCreateGroup}
+        onNavigateUp={navigateUp}
+        onNavigateDown={handleNavigateDown}
+        onClearSelection={clearSelection}
       />
 
       <main className="flex h-[calc(100vh-3rem)]">
@@ -116,6 +153,12 @@ export default function SimulationWorkspace() {
           onConnectionDelete={handleConnectionDelete}
           onGetViewportCenter={handleGetViewportCenter}
           onEditNode={handleEditNode}
+          currentLayer={currentLayer}
+          selectedNodes={selectedNodes}
+          isSelectionMode={isSelectionMode}
+          onToggleNodeSelection={toggleNodeSelection}
+          onNavigateDown={handleNavigateDown}
+          onNavigateToLayer={navigateToLayer}
         />
       </main>
 
