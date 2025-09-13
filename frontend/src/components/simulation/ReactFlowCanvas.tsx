@@ -185,13 +185,20 @@ export default function ReactFlowCanvas({
         />
         <MiniMap 
           className="bg-gray-800 border-gray-600"
+          pannable={true}
+          zoomable={true}
           nodeColor={(node) => {
             const data = node.data as SimulationNode;
             return data.status === 'active' ? 'rgba(147, 51, 234, 0.6)' : 'rgba(71, 85, 105, 0.4)';
           }}
+          nodeStrokeColor="rgba(71, 85, 105, 0.6)"
+          nodeBorderRadius={4}
+          maskColor="rgba(59, 130, 246, 0.15)"
           style={{
             backgroundColor: 'rgba(30, 41, 59, 0.9)',
             border: '1px solid rgba(71, 85, 105, 0.6)',
+            width: 200,
+            height: 150,
           }}
         />
       </ReactFlow>
