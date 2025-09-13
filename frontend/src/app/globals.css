@@ -107,3 +107,44 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* React Flow Styles */
+.react-flow__node {
+  cursor: grab;
+}
+
+.react-flow__node:active {
+  cursor: grabbing;
+}
+
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: rgba(147, 51, 234, 0.6);
+  border: 1px solid rgba(196, 181, 253, 0.4);
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.react-flow__handle:hover {
+  background: rgba(147, 51, 234, 0.8);
+  border-color: rgba(196, 181, 253, 0.6);
+  opacity: 0.9;
+  transform: scale(1.15);
+}
+
+.react-flow__edge-path {
+  stroke-width: 2;
+  opacity: 0.8;
+}
+
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+@keyframes dashdraw {
+  to {
+    stroke-dashoffset: -10;
+  }
+}

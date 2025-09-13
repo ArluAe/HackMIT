@@ -11,9 +11,7 @@ export default function SimulationWorkspace() {
     connections,
     selectedNode,
     isSimulationRunning,
-    draggedNode,
     setSelectedNode,
-    setDraggedNode,
     addNode,
     deleteNode,
     updateNodePosition,
@@ -29,18 +27,13 @@ export default function SimulationWorkspace() {
     setSelectedNode(nodeId);
   };
 
-  const handleNodeMouseDown = (nodeId: string | null) => {
-    setDraggedNode(nodeId);
-  };
 
   const handleNodeMouseMove = (x: number, y: number) => {
-    if (draggedNode) {
-      updateNodePosition(draggedNode, x, y);
-    }
+    // React Flow handles node positioning internally
   };
 
   const handleNodeMouseUp = () => {
-    setDraggedNode(null);
+    // React Flow handles node dragging internally
   };
 
   const handleConnectionFinish = (fromId: string, toId: string) => {
@@ -68,7 +61,6 @@ export default function SimulationWorkspace() {
           connections={connections}
           selectedNode={selectedNode}
           onNodeClick={handleNodeClick}
-          onNodeMouseDown={handleNodeMouseDown}
           onNodeMouseMove={handleNodeMouseMove}
           onNodeMouseUp={handleNodeMouseUp}
           onConnectionFinish={handleConnectionFinish}

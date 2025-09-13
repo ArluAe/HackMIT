@@ -1,10 +1,9 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
-  addEdge,
   Connection,
   useNodesState,
   useEdgesState,
@@ -12,6 +11,8 @@ import ReactFlow, {
   Background,
   MiniMap,
   BackgroundVariant,
+  NodeDragHandler,
+  NodeMouseHandler,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -23,7 +24,6 @@ interface ReactFlowCanvasProps {
   connections: SimulationConnection[];
   selectedNode: string | null;
   onNodeClick: (nodeId: string | null) => void;
-  onNodeMouseDown: (nodeId: string | null) => void;
   onNodeMouseMove: (x: number, y: number) => void;
   onNodeMouseUp: () => void;
   onConnectionFinish: (fromId: string, toId: string) => void;
@@ -38,7 +38,6 @@ export default function ReactFlowCanvas({
   connections,
   selectedNode,
   onNodeClick,
-  onNodeMouseDown,
   onNodeMouseMove,
   onNodeMouseUp,
   onConnectionFinish
@@ -63,8 +62,9 @@ export default function ReactFlowCanvas({
       type: 'smoothstep',
       animated: conn.status === 'active',
       style: {
-        stroke: conn.status === 'active' ? '#10b981' : '#6b7280',
-        strokeWidth: 3,
+        stroke: conn.status === 'active' ? 'rgba(147, 51, 234, 0.6)' : 'rgba(71, 85, 105, 0.4)',
+        strokeWidth: 2,
+        opacity: 0.7,
       },
     })), [connections]
   );
@@ -73,11 +73,11 @@ export default function ReactFlowCanvas({
   const [reactFlowEdgesState, setEdges, onEdgesChange] = useEdgesState(reactFlowEdges);
 
   // Update React Flow state when props change
-  useMemo(() => {
+  useEffect(() => {
     setNodes(reactFlowNodes);
   }, [reactFlowNodes, setNodes]);
 
-  useMemo(() => {
+  useEffect(() => {
     setEdges(reactFlowEdges);
   }, [reactFlowEdges, setEdges]);
 
@@ -91,15 +91,11 @@ export default function ReactFlowCanvas({
     onNodeClick(node.id);
   }, [onNodeClick]);
 
-  const onNodeMouseDownHandler = useCallback((event: React.MouseEvent, node: Node) => {
-    onNodeMouseDown(node.id);
-  }, [onNodeMouseDown]);
-
-  const onNodeDrag = useCallback((event: React.MouseEvent, node: Node) => {
+  const onNodeDrag: NodeDragHandler = useCallback((event, node) => {
     onNodeMouseMove(node.position.x, node.position.y);
   }, [onNodeMouseMove]);
 
-  const onNodeDragStop = useCallback((event: React.MouseEvent, node: Node) => {
+  const onNodeDragStop: NodeDragHandler = useCallback((event, node) => {
     onNodeMouseUp();
   }, [onNodeMouseUp]);
 
@@ -116,7 +112,6 @@ export default function ReactFlowCanvas({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClickHandler}
-        onNodeMouseDown={onNodeMouseDownHandler}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onPaneClick={onPaneClick}
@@ -124,6 +119,14 @@ export default function ReactFlowCanvas({
         fitView
         attributionPosition="bottom-left"
         className="bg-gray-900"
+        defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+        minZoom={0.1}
+        maxZoom={4}
+        panOnDrag={true}
+        panOnScroll={false}
+        zoomOnScroll={true}
+        zoomOnPinch={true}
+        selectNodesOnDrag={false}
       >
         <Background 
           variant={BackgroundVariant.Dots} 
@@ -139,17 +142,11 @@ export default function ReactFlowCanvas({
           className="bg-gray-800 border-gray-600"
           nodeColor={(node) => {
             const data = node.data as SimulationNode;
-            switch (data.type) {
-              case 'generator': return '#10b981';
-              case 'consumer': return '#f59e0b';
-              case 'storage': return '#3b82f6';
-              case 'grid': return '#8b5cf6';
-              default: return '#6b7280';
-            }
+            return data.status === 'active' ? 'rgba(147, 51, 234, 0.6)' : 'rgba(71, 85, 105, 0.4)';
           }}
           style={{
-            backgroundColor: '#1f2937',
-            border: '1px solid #374151',
+            backgroundColor: 'rgba(30, 41, 59, 0.9)',
+            border: '1px solid rgba(71, 85, 105, 0.6)',
           }}
         />
       </ReactFlow>

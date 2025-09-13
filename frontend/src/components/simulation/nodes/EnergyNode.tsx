@@ -10,25 +10,63 @@ interface EnergyNodeProps extends NodeProps {
 
 const EnergyNode = memo(({ data, selected }: EnergyNodeProps) => {
   const getNodeColor = (node: Node) => {
-    switch (node.type) {
-      case 'generator': return node.status === 'active' ? '#10b981' : '#6b7280';
-      case 'consumer': return node.status === 'active' ? '#f59e0b' : '#6b7280';
-      case 'storage': 
-        if (node.status === 'charging') return '#3b82f6';
-        if (node.status === 'discharging') return '#ef4444';
-        return '#6b7280';
-      case 'grid': return node.status === 'active' ? '#8b5cf6' : '#6b7280';
-      default: return '#6b7280';
+    const baseColors = {
+      generator: 'rgba(51, 65, 85, 0.6)', // Lighter blue-gray
+      consumer: 'rgba(51, 65, 85, 0.6)', // Lighter blue-gray  
+      storage: 'rgba(51, 65, 85, 0.6)', // Lighter blue-gray
+      grid: 'rgba(51, 65, 85, 0.6)', // Lighter blue-gray
+    };
+    
+    const activeColors = {
+      generator: 'rgba(96, 165, 250, 0.4)', // Lighter blue
+      consumer: 'rgba(74, 222, 128, 0.4)', // Lighter green
+      storage: 'rgba(196, 181, 253, 0.4)', // Lighter purple
+      grid: 'rgba(251, 191, 36, 0.4)', // Lighter orange
+    };
+    
+    const baseColor = baseColors[node.type] || baseColors.generator;
+    const activeColor = activeColors[node.type] || activeColors.generator;
+    
+    if (node.type === 'storage') {
+      if (node.status === 'charging') return 'rgba(96, 165, 250, 0.5)';
+      if (node.status === 'discharging') return 'rgba(248, 113, 113, 0.4)';
     }
+    
+    return node.status === 'active' ? activeColor : baseColor;
   };
 
   const getNodeIcon = (node: Node) => {
     switch (node.type) {
-      case 'generator': return '⚡';
-      case 'consumer': return '🏭';
-      case 'storage': return '🔋';
-      case 'grid': return '🔌';
-      default: return '⚪';
+      case 'generator': 
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        );
+      case 'consumer': 
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        );
+      case 'storage': 
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        );
+      case 'grid': 
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+          </svg>
+        );
+      default: 
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+        );
     }
   };
 
@@ -42,52 +80,141 @@ const EnergyNode = memo(({ data, selected }: EnergyNodeProps) => {
     }
   };
 
+  const getNodeTitle = (node: Node) => {
+    switch (node.type) {
+      case 'generator': return 'Energy Source';
+      case 'consumer': return 'Factory Unit';
+      case 'storage': return 'Battery System';
+      case 'grid': return 'Grid Connection';
+      default: return 'Node';
+    }
+  };
+
+  const getNodeDescription = (node: Node) => {
+    switch (node.type) {
+      case 'generator': return 'Renewable energy generation system';
+      case 'consumer': return 'Industrial energy consumption unit';
+      case 'storage': return 'Energy storage and management system';
+      case 'grid': return 'Main electrical grid connection point';
+      default: return 'Network component';
+    }
+  };
+
   return (
-    <div className={`relative ${selected ? 'ring-2 ring-white' : ''}`}>
+    <div className={`relative ${selected ? 'ring-1 ring-blue-300/40' : ''}`}>
       {/* Input Handle */}
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 bg-gray-600 border-2 border-gray-400"
-        style={{ top: '50%', left: '-6px' }}
+        className="w-2 h-2 border"
+        style={{ 
+          top: '50%', 
+          left: '-4px',
+          backgroundColor: 'rgba(147, 51, 234, 0.6)',
+          borderColor: 'rgba(196, 181, 253, 0.4)',
+        }}
       />
       
       {/* Node Body */}
       <div
-        className="flex flex-col items-center p-4 rounded-lg border-2 min-w-[120px]"
+        className="flex flex-col min-w-[200px] max-w-[240px] rounded-lg border backdrop-blur-sm overflow-hidden"
         style={{
           backgroundColor: getNodeColor(data),
-          borderColor: selected ? '#ffffff' : '#374151',
+          borderColor: selected ? 'rgba(255,255,255,0.2)' : 'rgba(71, 85, 105, 0.3)',
+          boxShadow: selected 
+            ? '0 6px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08)' 
+            : '0 3px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03)',
+          borderWidth: '1px',
         }}
       >
-        {/* Node Icon */}
-        <div className="text-2xl mb-2">{getNodeIcon(data)}</div>
-        
-        {/* Node Name */}
-        <div className="text-white font-semibold text-sm text-center mb-1">
-          {data.name}
+        {/* Header Section */}
+        <div 
+          className="px-4 py-3 border-b"
+          style={{
+            borderColor: 'rgba(71, 85, 105, 0.2)',
+            backgroundColor: 'rgba(0,0,0,0.05)',
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="text-blue-300">{getNodeIcon(data)}</div>
+              <div>
+                <h3 className="text-white font-semibold text-sm">{getNodeTitle(data)}</h3>
+                <p className="text-gray-300 text-xs">{getNodeDescription(data)}</p>
+              </div>
+            </div>
+            <div className="flex space-x-1">
+              <div className="w-6 h-6 rounded bg-gray-600/30 flex items-center justify-center cursor-pointer hover:bg-gray-500/40 transition-all duration-200 group">
+                <svg className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <div className="w-6 h-6 rounded bg-gray-600/30 flex items-center justify-center cursor-pointer hover:bg-gray-500/40 transition-all duration-200 group">
+                <svg className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {/* Node Type */}
-        <div className="text-gray-200 text-xs mb-1">
-          {getNodeLabel(data)}
-        </div>
-        
-        {/* Power Value */}
-        <div className="text-gray-300 text-xs">
-          {data.power}kW
-        </div>
-        
-        {/* Status Indicator */}
-        <div className="absolute top-2 right-2">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              data.status === 'active' ? 'bg-green-400' :
-              data.status === 'charging' ? 'bg-blue-400' :
-              data.status === 'discharging' ? 'bg-red-400' :
-              'bg-gray-400'
-            }`}
-          />
+
+        {/* Content Section */}
+        <div className="p-3 space-y-2">
+          {/* Power Output */}
+          <div 
+            className="flex items-center justify-between px-3 py-2 rounded"
+            style={{
+              backgroundColor: 'rgba(96, 165, 250, 0.05)',
+              border: '1px solid rgba(96, 165, 250, 0.1)',
+            }}
+          >
+            <span className="text-blue-100 text-sm">Power Output</span>
+            <div className="flex items-center space-x-2">
+              <span className="text-blue-200 text-xs font-mono">{data.power}kW</span>
+              <span className="text-gray-400 text-xs">Float</span>
+            </div>
+          </div>
+
+          {/* Status */}
+          <div 
+            className="flex items-center justify-between px-3 py-2 rounded"
+            style={{
+              backgroundColor: data.status === 'active' 
+                ? 'rgba(74, 222, 128, 0.05)' 
+                : 'rgba(71, 85, 105, 0.05)',
+              border: `1px solid ${data.status === 'active' 
+                ? 'rgba(74, 222, 128, 0.1)' 
+                : 'rgba(71, 85, 105, 0.1)'}`,
+            }}
+          >
+            <span className="text-blue-100 text-sm">Status</span>
+            <div className="flex items-center space-x-2">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  data.status === 'active' ? 'bg-green-300' :
+                  data.status === 'charging' ? 'bg-blue-300' :
+                  data.status === 'discharging' ? 'bg-red-300' :
+                  'bg-gray-400'
+                }`}
+              />
+              <span className="text-blue-200 text-xs font-mono capitalize">{data.status}</span>
+            </div>
+          </div>
+
+          {/* Node ID */}
+          <div 
+            className="flex items-center justify-between px-3 py-2 rounded"
+            style={{
+              backgroundColor: 'rgba(71, 85, 105, 0.05)',
+              border: '1px solid rgba(71, 85, 105, 0.1)',
+            }}
+          >
+            <span className="text-blue-100 text-sm">Node ID</span>
+            <div className="flex items-center space-x-2">
+              <span className="text-blue-200 text-xs font-mono">{data.id.slice(-6)}</span>
+              <span className="text-gray-400 text-xs">String</span>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -95,8 +222,13 @@ const EnergyNode = memo(({ data, selected }: EnergyNodeProps) => {
       <Handle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 bg-gray-600 border-2 border-gray-400"
-        style={{ top: '50%', right: '-6px' }}
+        className="w-2 h-2 border"
+        style={{ 
+          top: '50%', 
+          right: '-4px',
+          backgroundColor: 'rgba(147, 51, 234, 0.6)',
+          borderColor: 'rgba(196, 181, 253, 0.4)',
+        }}
       />
     </div>
   );
