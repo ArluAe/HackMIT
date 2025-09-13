@@ -169,7 +169,7 @@ export default function ReactFlowCanvas({
               position: { x: centerX, y: centerY },
               data: { 
                 id: node.familyId,
-                name: `Family ${familyNodes.length}`,
+                name: node.familyName || `Family ${familyNodes.length}`,
                 familyId: node.familyId,
                 isGroup: true,
                 onEditNode,
@@ -471,9 +471,73 @@ export default function ReactFlowCanvas({
         savedPositionsForLayer.current = null;
       }
       
-      // No automatic viewport changes - user controls zoom and pan manually
+      // Adjust zoom level based on layer for manual navigation
+      const targetZoom = currentLayer === 0 ? 1 : 0.2;
+      
+      if (currentLayer > 0) {
+        // When going to group view, center on the group nodes
+        // Get family groups from our data
+        const families = nodes
+          .filter(node => node.familyId && node.layer === 0)
+          .reduce((uniqueFamilies, node) => {
+            if (!uniqueFamilies.find(f => f.id === node.familyId)) {
+              const familyNodes = nodes.filter(n => n.familyId === node.familyId && n.layer === 0);
+              const centerX = familyNodes.reduce((sum, n) => {
+                const savedPos = savedNodePositions[n.id];
+                return sum + (savedPos ? savedPos.x : n.x);
+              }, 0) / familyNodes.length;
+              const centerY = familyNodes.reduce((sum, n) => {
+                const savedPos = savedNodePositions[n.id];
+                return sum + (savedPos ? savedPos.y : n.y);
+              }, 0) / familyNodes.length;
+              
+              uniqueFamilies.push({
+                id: node.familyId!,
+                x: centerX,
+                y: centerY
+              });
+            }
+            return uniqueFamilies;
+          }, [] as { id: string; x: number; y: number }[]);
+
+        if (families.length > 0) {
+          // Use fitView to center on family groups with more padding
+          setTimeout(() => {
+            if (reactFlowInstance.current) {
+              reactFlowInstance.current.fitView({
+                nodes: families,
+                duration: 800,
+                padding: 0.3, // Increased padding to show all groups
+                minZoom: 0.1, // Minimum zoom level
+                maxZoom: 0.3, // Maximum zoom level
+              });
+            }
+          }, 100);
+        } else {
+          // Fallback: center the viewport
+          setTimeout(() => {
+            if (reactFlowInstance.current) {
+              const viewportWidth = window.innerWidth;
+              const viewportHeight = window.innerHeight;
+              reactFlowInstance.current.setViewport({
+                x: -viewportWidth / 2,
+                y: -viewportHeight / 2,
+                zoom: targetZoom
+              }, { duration: 800 });
+            }
+          }, 100);
+        }
+      } else {
+        // When going to individual view, maintain current position but adjust zoom
+        const currentViewport = reactFlowInstance.current.getViewport();
+        reactFlowInstance.current.setViewport({
+          x: currentViewport.x,
+          y: currentViewport.y,
+          zoom: targetZoom
+        }, { duration: 800 });
+      }
     }
-  }, [currentLayer, isZooming, nodes]);
+  }, [currentLayer, isZooming, nodes, savedNodePositions]);
 
   return (
     <div className={`flex-1 relative ${isSelectionMode ? 'selection-mode' : ''}`}>

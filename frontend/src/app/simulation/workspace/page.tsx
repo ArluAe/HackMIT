@@ -6,12 +6,15 @@ import SimulationHeader from '@/components/simulation/SimulationHeader';
 import ControlPanel from '@/components/simulation/ControlPanel';
 import ReactFlowCanvas from '@/components/simulation/ReactFlowCanvas';
 import NodeEditModal from '@/components/simulation/nodes/NodeEditModal';
+import FamilyNameModal from '@/components/simulation/FamilyNameModal';
 import { Node } from '@/types/simulation';
 
 export default function SimulationWorkspace() {
   const [getViewportCenter, setGetViewportCenter] = useState<(() => { x: number; y: number }) | null>(null);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
+  const [pendingSelectedNodes, setPendingSelectedNodes] = useState<string[]>([]);
   
   const {
     nodes,
@@ -104,8 +107,21 @@ export default function SimulationWorkspace() {
 
   // Hierarchical handlers
   const handleCreateGroup = useCallback(() => {
-    createGroupNode(selectedNodes);
-  }, [createGroupNode, selectedNodes]);
+    if (selectedNodes.length >= 2) {
+      setPendingSelectedNodes(selectedNodes);
+      setIsFamilyModalOpen(true);
+    }
+  }, [selectedNodes]);
+
+  const handleFamilyNameConfirm = useCallback((familyName: string) => {
+    createGroupNode(pendingSelectedNodes, familyName);
+    setPendingSelectedNodes([]);
+  }, [createGroupNode, pendingSelectedNodes]);
+
+  const handleFamilyModalClose = useCallback(() => {
+    setIsFamilyModalOpen(false);
+    setPendingSelectedNodes([]);
+  }, []);
 
   const handleToggleSelectionMode = useCallback(() => {
     setIsSelectionMode(!isSelectionMode);
@@ -114,9 +130,18 @@ export default function SimulationWorkspace() {
     }
   }, [isSelectionMode, setIsSelectionMode, clearSelection]);
 
-  const handleNavigateDown = useCallback((groupNodeId: string) => {
-    navigateDown(groupNodeId);
-  }, [navigateDown]);
+  const handleNavigateDown = useCallback((groupNodeId?: string) => {
+    if (groupNodeId) {
+      navigateDown(groupNodeId);
+    } else {
+      // Manual navigation down - go to layer 0
+      navigateToLayer(0);
+    }
+  }, [navigateDown, navigateToLayer]);
+
+  const handleNavigateUp = useCallback(() => {
+    navigateUp();
+  }, [navigateUp]);
 
 
   return (
@@ -129,9 +154,9 @@ export default function SimulationWorkspace() {
         isSelectionMode={isSelectionMode}
         onToggleSelectionMode={handleToggleSelectionMode}
         onCreateGroup={handleCreateGroup}
-        onNavigateUp={navigateUp}
-        onNavigateDown={handleNavigateDown}
-        onClearSelection={clearSelection}
+          onNavigateUp={handleNavigateUp}
+          onNavigateDown={handleNavigateDown}
+          onClearSelection={clearSelection}
       />
 
       <main className="flex h-[calc(100vh-3rem)]">
@@ -168,6 +193,14 @@ export default function SimulationWorkspace() {
         isOpen={isEditModalOpen}
         onClose={handleCloseModal}
         onSave={handleSaveNode}
+      />
+
+      {/* Family Name Modal */}
+      <FamilyNameModal
+        isOpen={isFamilyModalOpen}
+        onClose={handleFamilyModalClose}
+        onConfirm={handleFamilyNameConfirm}
+        selectedNodeCount={pendingSelectedNodes.length}
       />
     </div>
   );

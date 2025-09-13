@@ -12,7 +12,7 @@ interface SimulationHeaderProps {
   onToggleSelectionMode: () => void;
   onCreateGroup: () => void;
   onNavigateUp: () => void;
-  onNavigateDown: (groupNodeId: string) => void;
+  onNavigateDown: (groupNodeId?: string) => void;
   onClearSelection: () => void;
 }
 
@@ -53,16 +53,29 @@ export default function SimulationHeader({
           <div className="flex items-center space-x-2">
             {/* Layer Navigation */}
             <div className="flex items-center space-x-1 bg-gray-800 rounded-lg p-1">
-              <button
-                onClick={onNavigateUp}
-                disabled={currentLayer === 0}
-                className="p-1.5 rounded text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Navigate Up"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                </svg>
-              </button>
+              {currentLayer === 0 ? (
+                // Layer 0: Show up arrow to go to higher layer
+                <button
+                  onClick={onNavigateUp}
+                  className="p-1.5 rounded text-gray-400 hover:text-white transition-colors"
+                  title="Go to Higher Layer"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+              ) : (
+                // Layer 1+: Show down arrow to go to lower layer
+                <button
+                  onClick={() => onNavigateDown('')}
+                  className="p-1.5 rounded text-gray-400 hover:text-white transition-colors"
+                  title="Go to Lower Layer"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              )}
               <span className="px-2 py-1 text-xs text-gray-300 bg-gray-700 rounded">
                 L{currentLayer}
               </span>

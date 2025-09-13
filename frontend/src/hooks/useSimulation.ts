@@ -104,7 +104,7 @@ export const useSimulation = () => {
   };
 
   // Hierarchical functions
-  const createGroupNode = (selectedNodeIds: string[]) => {
+  const createGroupNode = (selectedNodeIds: string[], familyName?: string) => {
     if (selectedNodeIds.length < 2) return;
     
     // Create a family ID for the selected nodes
@@ -114,7 +114,7 @@ export const useSimulation = () => {
     setNodes(prevNodes => 
       prevNodes.map(node => 
         selectedNodeIds.includes(node.id) 
-          ? { ...node, familyId }
+          ? { ...node, familyId, familyName: familyName || `Family ${selectedNodeIds.length}` }
           : node
       )
     );
@@ -143,7 +143,11 @@ export const useSimulation = () => {
   };
 
   const navigateUp = () => {
-    if (currentLayer > 0) {
+    if (currentLayer === 0) {
+      // Go from layer 0 to layer 1 (individuals to groups)
+      navigateToLayer(1);
+    } else if (currentLayer > 1) {
+      // Go to higher layer (more abstract)
       navigateToLayer(currentLayer - 1);
     }
   };
