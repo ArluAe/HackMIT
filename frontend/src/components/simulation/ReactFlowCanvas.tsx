@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useRef } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -13,6 +13,7 @@ import ReactFlow, {
   BackgroundVariant,
   NodeDragHandler,
   NodeMouseHandler,
+  ReactFlowInstance,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -27,6 +28,7 @@ interface ReactFlowCanvasProps {
   onNodeMouseMove: (x: number, y: number) => void;
   onNodeMouseUp: () => void;
   onConnectionFinish: (fromId: string, toId: string) => void;
+  onGetViewportCenter?: (getCenter: () => { x: number; y: number }) => void;
 }
 
 const nodeTypes = {
@@ -40,8 +42,10 @@ export default function ReactFlowCanvas({
   onNodeClick,
   onNodeMouseMove,
   onNodeMouseUp,
-  onConnectionFinish
+  onConnectionFinish,
+  onGetViewportCenter
 }: ReactFlowCanvasProps) {
+  const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
   // Convert simulation nodes to React Flow nodes
   // Only set initial position for new nodes, let React Flow manage positions
   const reactFlowNodes: Node[] = useMemo(() => 
@@ -117,6 +121,32 @@ export default function ReactFlowCanvas({
     onNodeClick(null);
   }, [onNodeClick]);
 
+  // Function to get the center of the current viewport
+  const getViewportCenter = useCallback(() => {
+    if (!reactFlowInstance.current) {
+      return { x: 400, y: 300 }; // Fallback position
+    }
+    // Use React Flow's built-in method to convert screen coordinates to flow coordinates
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    return reactFlowInstance.current.screenToFlowPosition({
+      x: centerX,
+      y: centerY,
+    });
+  }, []);
+
+  // Initialize React Flow instance
+  const onInit = useCallback((instance: ReactFlowInstance) => {
+    reactFlowInstance.current = instance;
+  }, []);
+
+  // Expose the viewport center function to parent
+  useEffect(() => {
+    if (onGetViewportCenter) {
+      onGetViewportCenter(getViewportCenter);
+    }
+  }, [onGetViewportCenter, getViewportCenter]);
+
   return (
     <div className="flex-1 relative">
       <ReactFlow
@@ -128,6 +158,7 @@ export default function ReactFlowCanvas({
         onNodeClick={onNodeClickHandler}
         onNodeDragStop={onNodeDragStop}
         onPaneClick={onPaneClick}
+        onInit={onInit}
         nodeTypes={nodeTypes}
         attributionPosition="bottom-left"
         className="bg-gray-900"

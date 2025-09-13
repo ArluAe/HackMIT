@@ -10,12 +10,12 @@ export const useSimulation = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStart, setConnectionStart] = useState<string | null>(null);
 
-  const addNode = (type: Node['type']) => {
+  const addNode = (type: Node['type'], viewportCenter?: { x: number; y: number }) => {
     const newNode: Node = {
       id: Date.now().toString(),
       type,
-      x: 400 + Math.random() * 200,
-      y: 300 + Math.random() * 200,
+      x: viewportCenter?.x || (400 + Math.random() * 200),
+      y: viewportCenter?.y || (300 + Math.random() * 200),
       name: `${type.charAt(0).toUpperCase() + type.slice(1)} ${nodes.length + 1}`,
       power: Math.floor(Math.random() * 500) + 100,
       status: 'active'

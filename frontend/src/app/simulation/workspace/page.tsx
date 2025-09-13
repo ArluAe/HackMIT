@@ -1,11 +1,14 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { useSimulation } from '@/hooks/useSimulation';
 import SimulationHeader from '@/components/simulation/SimulationHeader';
 import ControlPanel from '@/components/simulation/ControlPanel';
 import ReactFlowCanvas from '@/components/simulation/ReactFlowCanvas';
 
 export default function SimulationWorkspace() {
+  const [getViewportCenter, setGetViewportCenter] = useState<(() => { x: number; y: number }) | null>(null);
+  
   const {
     nodes,
     connections,
@@ -41,6 +44,20 @@ export default function SimulationWorkspace() {
     addConnection(fromId, toId);
   };
 
+  const handleGetViewportCenter = useCallback((getCenter: () => { x: number; y: number }) => {
+    setGetViewportCenter(() => getCenter);
+  }, []);
+
+  const handleAddNode = useCallback((type: any) => {
+    if (getViewportCenter) {
+      const viewportCenter = getViewportCenter();
+      addNode(type as any, viewportCenter);
+    } else {
+      // Fallback to default positioning if viewport center is not available
+      addNode(type as any);
+    }
+  }, [addNode, getViewportCenter]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -53,7 +70,7 @@ export default function SimulationWorkspace() {
         <ControlPanel
           selectedNode={selectedNodeData}
           networkStats={networkStats}
-          onAddNode={addNode}
+          onAddNode={handleAddNode}
           onDeleteNode={deleteNode}
         />
 
@@ -65,6 +82,7 @@ export default function SimulationWorkspace() {
           onNodeMouseMove={handleNodeMouseMove}
           onNodeMouseUp={handleNodeMouseUp}
           onConnectionFinish={handleConnectionFinish}
+          onGetViewportCenter={handleGetViewportCenter}
         />
       </main>
     </div>
