@@ -29,6 +29,7 @@ interface ReactFlowCanvasProps {
   onNodeMouseUp: () => void;
   onConnectionFinish: (fromId: string, toId: string) => void;
   onGetViewportCenter?: (getCenter: () => { x: number; y: number }) => void;
+  onEditNode: (node: SimulationNode) => void;
 }
 
 const nodeTypes = {
@@ -43,7 +44,8 @@ export default function ReactFlowCanvas({
   onNodeMouseMove,
   onNodeMouseUp,
   onConnectionFinish,
-  onGetViewportCenter
+  onGetViewportCenter,
+  onEditNode
 }: ReactFlowCanvasProps) {
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
   // Convert simulation nodes to React Flow nodes
@@ -53,9 +55,9 @@ export default function ReactFlowCanvas({
       id: node.id,
       type: 'energyNode',
       position: { x: node.x, y: node.y }, // Initial position only
-      data: node,
+      data: { ...node, onEditNode },
       selected: selectedNode === node.id,
-    })), [nodes, selectedNode]
+    })), [nodes, selectedNode, onEditNode]
   );
 
   // Convert simulation connections to React Flow edges

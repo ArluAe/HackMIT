@@ -5,15 +5,20 @@ import { useSimulation } from '@/hooks/useSimulation';
 import SimulationHeader from '@/components/simulation/SimulationHeader';
 import ControlPanel from '@/components/simulation/ControlPanel';
 import ReactFlowCanvas from '@/components/simulation/ReactFlowCanvas';
+import NodeEditModal from '@/components/simulation/nodes/NodeEditModal';
+import { Node } from '@/types/simulation';
 
 export default function SimulationWorkspace() {
   const [getViewportCenter, setGetViewportCenter] = useState<(() => { x: number; y: number }) | null>(null);
+  const [editingNode, setEditingNode] = useState<Node | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const {
     nodes,
     connections,
     selectedNode,
     isSimulationRunning,
+    setNodes,
     setSelectedNode,
     addNode,
     deleteNode,
@@ -58,6 +63,27 @@ export default function SimulationWorkspace() {
     }
   }, [addNode, getViewportCenter]);
 
+  const handleEditNode = useCallback((node: Node) => {
+    setEditingNode(node);
+    setIsEditModalOpen(true);
+  }, []);
+
+  const handleSaveNode = useCallback((updatedNode: Node) => {
+    // Update the node in the simulation state
+    setNodes(prevNodes => 
+      prevNodes.map(node => 
+        node.id === updatedNode.id ? updatedNode : node
+      )
+    );
+    setIsEditModalOpen(false);
+    setEditingNode(null);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setIsEditModalOpen(false);
+    setEditingNode(null);
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -83,8 +109,17 @@ export default function SimulationWorkspace() {
           onNodeMouseUp={handleNodeMouseUp}
           onConnectionFinish={handleConnectionFinish}
           onGetViewportCenter={handleGetViewportCenter}
+          onEditNode={handleEditNode}
         />
       </main>
+
+      {/* Node Edit Modal - Rendered at workspace level */}
+      <NodeEditModal
+        node={editingNode}
+        isOpen={isEditModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveNode}
+      />
     </div>
   );
 }

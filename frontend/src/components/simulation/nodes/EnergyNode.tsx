@@ -5,10 +5,16 @@ import { Handle, Position, NodeProps } from 'reactflow';
 import { Node } from '@/types/simulation';
 
 interface EnergyNodeProps extends NodeProps {
-  data: Node;
+  data: Node & { onEditNode?: (node: Node) => void };
 }
 
 const EnergyNode = memo(({ data, selected }: EnergyNodeProps) => {
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (data.onEditNode) {
+      data.onEditNode(data);
+    }
+  };
   const getNodeColor = (node: Node) => {
     const baseColors = {
       generator: 'rgba(51, 65, 85, 0.6)', // Lighter blue-gray
@@ -143,15 +149,13 @@ const EnergyNode = memo(({ data, selected }: EnergyNodeProps) => {
                 <p className="text-gray-300 text-xs">{getNodeDescription(data)}</p>
               </div>
             </div>
-            <div className="flex space-x-1">
-              <div className="w-6 h-6 rounded bg-gray-600/30 flex items-center justify-center cursor-pointer hover:bg-gray-500/40 transition-all duration-200 group">
-                <svg className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex">
+              <div 
+                onClick={handleEditClick}
+                className="w-8 h-8 rounded bg-gray-600/30 flex items-center justify-center cursor-pointer hover:bg-gray-500/40 transition-all duration-200 group"
+              >
+                <svg className="w-4 h-4 text-gray-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </div>
-              <div className="w-6 h-6 rounded bg-gray-600/30 flex items-center justify-center cursor-pointer hover:bg-gray-500/40 transition-all duration-200 group">
-                <svg className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </div>
             </div>
@@ -230,6 +234,7 @@ const EnergyNode = memo(({ data, selected }: EnergyNodeProps) => {
           borderColor: 'rgba(196, 181, 253, 0.4)',
         }}
       />
+
     </div>
   );
 });
