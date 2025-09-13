@@ -1,5 +1,6 @@
 # import Agent # Fix
 import numpy as np
+from agents.ProducerAgent import ProducerAgent
 
 class Node:
     def __init__(self, index, inertia, friction, dt, target_hz):
@@ -16,14 +17,14 @@ class Node:
         self.doffset = 0
 
         # Agent
-        # self.agent = Agent() # Fix
+        self.agent = ProducerAgent(agent_id=index, max_output=100.0)
 
     def add_connections(self, connections):
         self.connections = connections
 
     def time_step(self, state):
-        d2offset = self.agent.select_autonomous_action(state)
-        self.doffset = self.doffset + self.d2offset * self.dt
+        d2offset = self.agent.act(state)
+        self.doffset = self.doffset + d2offset * self.dt
         self.offset = self.offset + self.doffset * self.dt
     
     def get_transmission(self):

@@ -1,7 +1,7 @@
 from Node import Node
 from Branch import Branch
 from collections import defaultdict
-from temperature2 import get_daily_temperature
+
 import numpy as np
 
 class PowerGrid:
@@ -26,7 +26,7 @@ class PowerGrid:
             node1 = int(branch[1]) - 1
             capacity =  branch[5]
             transmission_factor = 1 # Fix
-            new_branch = Branch(node0, node1, capacity, transmission_factor)
+            new_branch = Branch(self.nodes[node0], self.nodes[node1], capacity, transmission_factor)
 
             self.branches[node0].append(new_branch)
             self.branches[node1].append(new_branch)
@@ -59,7 +59,7 @@ class PowerGrid:
 
 
     def simulate_day(self):
-        time_values = np.linspace(0, 1440 - int(self.dt), num=int(1440/self.t))
+        time_values = np.linspace(0, 1440 - int(self.dt), num=int(1440/self.dt))
         warming_factor = 10 * np.random.rand() + 5
         temps = 20 + warming_factor * -np.cos(time_values / (1440 - int(self.dt)) * 2 * np.pi - 180)
         for i in range(len(temps)):
