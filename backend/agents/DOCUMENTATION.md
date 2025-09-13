@@ -1,7 +1,7 @@
-# ⚡ Energy Agent System — Complete Implementation Guide
+# ⚡ Energy Agent System — Implementation Guide
 
 ## 1. System Overview
-This system implements **multi-agent reinforcement learning** for energy grid simulation with four competing agent types that learn adversarial strategies through continuous interaction.
+This system implements **multi-agent reinforcement learning** for energy grid simulation with four competing agent types using a unified architecture.
 
 ### Agent Types & Objectives
 - **🏭 Producers**: Maximize profit while competing for market dominance
@@ -9,12 +9,11 @@ This system implements **multi-agent reinforcement learning** for energy grid si
 - **🏢 Businesses**: Cost-conscious electricity consumers with operational flexibility
 - **🔋 Batteries**: Exploit price volatility and create market inefficiencies
 
-### Core RL Architecture
-Each agent implements the standard RL interface through `BaseAgent`:
-1. **`act(action)`**: Execute continuous RL action → update `delta_e` (electricity change)
-2. **`get_observation(state)`**: Convert environment state → normalized feature vector
-3. **`compute_reward(state, all_agents)`**: Calculate adversarial reward based on competition
-4. **Action tracking**: History and episode rewards for learning algorithms
+### RL Architecture
+Each agent implements a streamlined interface through `BaseAgent`:
+1. **`act(state)`**: Single method that gets observation, computes policy decision, and executes action → returns `startup_rate * action`
+2. **`compute_reward(state, all_agents)`**: Calculate reward based on competition
+3. **Unified Policy**: All agents use the same `Policy` class with agent-type-specific configurations
 
 ---
 
@@ -22,15 +21,34 @@ Each agent implements the standard RL interface through `BaseAgent`:
 
 ### BaseAgent Interface (`BaseAgent.py`)
 **Core attributes:**
+- `agent_id`: Unique identifier for the agent
 - `delta_e`: Electricity produced (+) or consumed (-) by agent
-- `last_action`: Previous RL action taken
+- `cost_function`: Agent-specific cost calculation function
 - `episode_reward`: Cumulative reward for current episode
-- `action_history`: Complete action sequence for analysis
+- `policy`: Policy instance for decision-making
 
 **Key methods:**
-- `get_action_bounds()`: Valid action range per agent type
-- `normalize_features()`: Helper for observation preprocessing
-- `update_reward()`: Accumulate episode rewards
+- `act(state)`: Single action method that handles complete decision-making process, returns `startup_rate * action`
+- `compute_reward(state, all_agents)`: Calculate competitive rewards
+- `update_reward(reward)`: Accumulate episode rewards
+
+### Unified Policy Class (`Policy.py`)
+**Purpose:** Single neural network architecture adaptable to all agent types
+- **Architecture**: 3-layer fully connected network (64 hidden units each)
+- **Input**: Agent-type-specific observation vectors (variable dimensions)
+- **Output**: Single action value in [-1, 1] range via tanh activation
+- **Features**: Xavier initialization, dropout regularization, exploration noise
+
+**Key methods:**
+- `select_action(observation, training=True)`: Returns action in [-1, 1] with optional exploration noise
+- `forward(x)`: Neural network forward pass
+- `get_action_batch(observations)`: Batch processing for training
+
+**Agent Type Configuration:**
+- Business (type 0): 7-dimensional input
+- Consumer (type 1): 5-dimensional input
+- Producer (type 2): 6-dimensional input
+- Battery (type 3): 7-dimensional input
 
 ---
 
@@ -38,20 +56,22 @@ Each agent implements the standard RL interface through `BaseAgent`:
 
 ### 🏭 ProducerAgent (`ProducerAgent.py`)
 
-**Action Space:** `[0, 1]` → `output = action × max_capacity`
+**Action Flow:**
+1. `act(state)` → `_get_observation(state)` → `policy.select_action()` → scale to [0,1] → execute production
+2. **Action Space:** Policy outputs [-1,1] → scale to [0,1] → `output = scaled_action × max_output`
+3. **Return:** `startup_rate × action` (original [-1,1] action)
 
-**State Observation (7 features):**
+**State Observation (6 features):**
 ```python
 global_features = [
     frequency / 60.0,           # grid stability
-    weather,                    # generation conditions
+    temperature,                # weather conditions
     avg_cost / 10.0,            # current price
     time_of_day / 24.0          # time context
 ]
 agent_features = [
-    current_output / max_output,  # capacity utilization
-    last_action,                  # action persistence
-    episode_reward / 10.0         # performance context
+    delta_e / max_output,       # current utilization
+    episode_reward / 10.0       # performance context
 ]
 ```
 
@@ -77,19 +97,21 @@ total_reward = profit_reward + market_share_reward + stability_penalty + others_
 
 ### 🏠 ConsumerAgent (`ConsumerAgent.py`)
 
-**Action Space:** `[0.5, 2.0]` → `consumption = action × energy_consumption`
+**Action Flow:**
+1. `act(state)` → `_get_observation(state)` → `policy.select_action()` → scale to [0.5,2.0] → execute consumption
+2. **Action Space:** Policy outputs [-1,1] → scale to [0.5,2.0] → `consumption = scaled_action × energy_consumption`
+3. **Return:** `startup_rate × action` (original [-1,1] action)
 
-**State Observation (6 features):**
+**State Observation (5 features):**
 ```python
 global_features = [
     frequency / 60.0,           # grid stability
-    weather,                    # generation conditions
-    avg_cost / 10.0,            # current price (ignored)
+    temperature,                # weather conditions
+    avg_cost / 10.0,            # current price (price-agnostic)
     time_of_day / 24.0          # time context
 ]
 agent_features = [
-    (last_action - 1.25) / 0.75,       # normalized action [-1,1]
-    episode_reward / 10.0               # performance context
+    episode_reward / 10.0       # performance context
 ]
 ```
 
@@ -114,20 +136,23 @@ total_reward = 0.5*stability + 0.3*consistency + 0.15*fairness + 0.05*others_pen
 
 ### 🏢 BusinessAgent (`BusinessAgent.py`)
 
-**Action Space:** `[0.3, 1.5]` → `consumption = action × baseline_consumption`
+**Action Flow:**
+1. `act(state)` → `_get_observation(state)` → `policy.select_action()` → scale to [0.3,1.5] → execute consumption
+2. **Action Space:** Policy outputs [-1,1] → scale to [0.3,1.5] → `consumption = scaled_action × baseline_consumption`
+3. **Return:** `startup_rate × action` (original [-1,1] action)
 
 **State Observation (7 features):**
 ```python
 global_features = [
     frequency / 60.0,           # grid stability
-    weather,                    # generation conditions
-    avg_cost / 10.0,            # current price (important!)
+    temperature,                # weather conditions
+    avg_cost / 10.0,            # current price (cost-sensitive!)
     time_of_day / 24.0          # time context
 ]
 agent_features = [
-    current_consumption / baseline_consumption,  # consumption multiplier
-    (last_action - 0.9) / 0.6,                 # normalized action [-1,1]
-    episode_reward / 10.0                       # performance context
+    abs(delta_e) / baseline_consumption,  # consumption ratio
+    episode_reward / 10.0,                # performance context
+    0.0                                   # agent type identifier
 ]
 ```
 
@@ -154,28 +179,29 @@ total_reward = 0.5*cost + 0.2*competition + 0.15*stability + 0.1*others_penalty 
 
 ### 🔋 BatteryAgent (`BatteryAgent.py`)
 
-**Action Space:** `[-1, 1]` → `charge_rate = action × max_charge_rate`
-- Positive: charging (buying electricity)
-- Negative: discharging (selling electricity)
+**Action Flow:**
+1. `act(state)` → `_get_observation(state)` → `policy.select_action()` → execute charge/discharge
+2. **Action Space:** Policy outputs [-1,1] (perfect for battery operations)
+   - Positive: charging (buying electricity)
+   - Negative: discharging (selling electricity)
+3. **Return:** `startup_rate × action` (original [-1,1] action)
 
 **State Management:**
 - **SoC (State of Charge)**: `[0, 1]` with efficiency losses during charging
 - **Capacity constraints**: Physical limits on charge/discharge rates
 - **Arbitrage tracking**: Cumulative profit from all transactions
 
-**State Observation (9 features):**
+**State Observation (7 features):**
 ```python
 global_features = [
     frequency / 60.0,           # grid stability
-    weather,                    # generation conditions
-    avg_cost / 10.0,            # current price
+    temperature,                # weather conditions
+    avg_cost / 10.0,            # current price (arbitrage key!)
     time_of_day / 24.0          # time context
 ]
 agent_features = [
     soc,                                    # current charge level
     (capacity - abs(delta_e)) / capacity,   # capacity utilization
-    last_action,                            # previous charge/discharge
-    total_arbitrage / 100.0,               # normalized profit
     episode_reward / 10.0                   # performance context
 ]
 ```
@@ -206,7 +232,7 @@ total_reward = 0.4*arbitrage + 0.2*impact + 0.2*competition + 0.1*exploitation +
 
 ---
 
-## 4. Multi-Agent Environment Interaction
+## 4. Simplified Multi-Agent Environment Interaction
 
 ### Environment State Structure
 The shared environment state contains:
@@ -219,11 +245,13 @@ state = {
 }
 ```
 
-### Agent Interaction Flow
-1. **Observation Phase**: Each agent calls `get_observation(state)` → receives normalized feature vector
-2. **Action Phase**: RL algorithm provides action → agent calls `act(action)` → updates `delta_e`
-3. **Environment Update**: Grid physics calculate new frequency, prices based on supply/demand
-4. **Reward Phase**: Each agent calls `compute_reward(state, all_agents)` → receives competitive reward
+### Simplified Agent Interaction Flow
+1. **Single Action Phase**: Each agent calls `act(state)` which internally:
+   - Gets observation from state
+   - Calls `policy.select_action(observation)`
+   - Executes action and returns `delta_e`
+2. **Environment Update**: Grid physics calculate new frequency, prices based on supply/demand
+3. **Reward Phase**: Each agent calls `compute_reward(state, all_agents)` → receives competitive reward
 
 ### Market Dynamics & Competition
 
@@ -241,26 +269,22 @@ state = {
 
 ---
 
-## 5. Training Integration
+## 5. Simplified Training Integration
 
 ### RL Algorithm Interface
-Each agent exposes standard RL methods for training:
+Simplified training loop with unified action method:
 
 ```python
 # Example integration with PPO/MADDPG
 for episode in range(max_episodes):
     state = env.reset()
-    episode_rewards = [0] * len(agents)
 
     for step in range(max_steps):
-        # Get observations
-        observations = [agent.get_observation(state) for agent in agents]
+        # Single action call per agent - returns startup_rate * action
+        actions = [agent.act(state) for agent in agents]
 
-        # RL policy decisions
-        actions = [policy.get_action(obs) for policy, obs in zip(policies, observations)]
-
-        # Execute actions
-        delta_es = [agent.act(action) for agent, action in zip(agents, actions)]
+        # Each agent's delta_e is updated internally during act()
+        delta_es = [agent.delta_e for agent in agents]
 
         # Update environment physics
         new_state = update_grid_physics(state, delta_es)
@@ -272,9 +296,8 @@ for episode in range(max_episodes):
         for agent, reward in zip(agents, rewards):
             agent.update_reward(reward)
 
-        # Store experience for training
-        experience = (observations, actions, rewards, next_observations)
-        replay_buffer.add(experience)
+        # For training, access agent.policy directly for observations/gradients
+        # Each agent's policy can be trained independently or jointly
 
         state = new_state
 ```
@@ -282,21 +305,22 @@ for episode in range(max_episodes):
 ### Key Training Considerations
 
 **Observation Dimensionality:**
-- Producer: 7 features (4 global + 3 agent-specific)
-- Consumer: 6 features (4 global + 2 agent-specific)
+- Producer: 6 features (4 global + 2 agent-specific)
+- Consumer: 5 features (4 global + 1 agent-specific)
 - Business: 7 features (4 global + 3 agent-specific)
-- Battery: 9 features (4 global + 5 agent-specific)
+- Battery: 7 features (4 global + 3 agent-specific)
 
-**Action Bounds & Clipping:**
-- Producers: `np.clip(action, 0, 1)`
-- Consumers: `np.clip(action, 0.5, 2.0)`
-- Businesses: `np.clip(action, 0.3, 1.5)`
-- Batteries: `np.clip(action, -1, 1)`
+**Policy Output & Action Scaling:**
+- All policies output actions in `[-1, 1]` range (via tanh activation)
+- Each agent scales to their specific operational bounds:
+  - Producers: `(action + 1) / 2` → `[0, 1]` → multiply by max_output
+  - Consumers: `1.25 + action * 0.75` → `[0.5, 2.0]` → multiply by energy_consumption
+  - Businesses: `0.9 + action * 0.6` → `[0.3, 1.5]` → multiply by baseline_consumption
+  - Batteries: `action` → `[-1, 1]` (no scaling needed, perfect range for charge/discharge)
 
 **Reward Normalization:**
 - All rewards clipped to `[-1, 1]` range
 - Episode rewards tracked in `agent.episode_reward`
-- Action history stored in `agent.action_history`
 
 ### Recommended Algorithms
 - **MADDPG**: Handles continuous actions + multi-agent non-stationarity
@@ -306,49 +330,43 @@ for episode in range(max_episodes):
 
 ---
 
-## 6. Advanced Features & Extensions
+## 6. Architecture Benefits
 
 ### Implemented Capabilities
-✅ **Continuous action spaces** with agent-specific bounds
-✅ **Adversarial reward functions** with zero-sum components
-✅ **Market competition** through supply/demand dynamics
-✅ **Action/reward history** tracking for analysis
-✅ **Normalized observations** for stable learning
-✅ **Operational constraints** (SoC limits, capacity bounds)
+✅ **Unified action interface** - single `act(state)` method per agent
+✅ **Single Policy class** - adaptable neural network for all agent types
+✅ **Agent-type-specific configurations** - tailored input dimensions and scaling
+✅ **Continuous action spaces** with [-1,1] output range
+✅ **Competitive reward functions** with zero-sum components
+✅ **Market dynamics** through supply/demand interactions
+✅ **Operational constraints** (SoC limits, capacity bounds, productivity requirements)
 
-### Potential Extensions
-🔄 **Dynamic pricing models** based on real-time imbalance
-🔄 **Weather correlation** affecting both generation and demand
-🔄 **Multi-timestep planning** for longer-term strategies
-🔄 **Communication channels** between cooperative agents
-🔄 **Hierarchical agents** with different planning horizons
-🔄 **Realistic grid physics** including transmission losses
+### Architecture Advantages
+- **Unified Training**: All agents use the same Policy architecture with type-specific configurations
+- **Clean Interface**: Single method call handles observation → action → execution
+- **Consistent Output**: All policies output [-1,1] actions, scaled per agent type
+- **Modular Design**: Easy to add new agent types by extending BaseAgent
+- **Training Flexibility**: Direct policy access for custom RL algorithms
 
-### Integration with RL Libraries
+### PyTorch/RL Integration
 
-**PyTorch/Stable-Baselines3:**
+**Training Access Pattern:**
 ```python
-from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import VecEnv
+# Direct policy access for training
+for agent in agents:
+    observation = agent._get_observation(state)
+    raw_action = agent.policy.select_action(observation, training=True)
+    # Use raw_action for gradient computation
 
-# Wrap agents as gym environment
-gym_env = EnergyGridGymWrapper(agents)
-model = PPO("MlpPolicy", gym_env, verbose=1)
-model.learn(total_timesteps=100000)
+    # Or batch processing for efficiency
+    batch_actions = agent.policy.get_action_batch(observation_batch)
 ```
 
-**RLLib (Multi-agent):**
+**Model Persistence:**
 ```python
-config = {
-    "multiagent": {
-        "policies": {
-            "producer": (PPOTorchPolicy, obs_space, action_space, {}),
-            "consumer": (PPOTorchPolicy, obs_space, action_space, {}),
-            "battery": (PPOTorchPolicy, obs_space, action_space, {})
-        },
-        "policy_mapping_fn": lambda agent_id: agent_id.split("_")[0]
-    }
-}
+# Save/load individual agent policies
+agent.policy.save_model(f"agent_{agent.agent_id}_policy.pth")
+agent.policy.load_model(f"agent_{agent.agent_id}_policy.pth")
 ```
 
-This implementation provides a complete foundation for multi-agent RL research in energy markets, with adversarial dynamics and realistic operational constraints.
+This implementation provides a robust foundation for multi-agent RL in energy markets, balancing simplicity with the flexibility needed for complex adversarial training scenarios.

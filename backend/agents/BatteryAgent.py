@@ -1,73 +1,72 @@
 from agents.BaseAgent import BaseAgent
-from agents.policies.BatteryPolicy import BatteryPolicy
+from agents.Policy import Policy
 import numpy as np
 
 class BatteryAgent(BaseAgent):
-    def __init__(self, agent_id, capacity, charge_rate, efficiency=0.9, soc=0.5, cost_function=None):
+    def __init__(self, agent_id, capacity, charge_rate, startup_rate=1.0, efficiency=0.9, soc=0.5, cost_function=None):
         super().__init__(agent_id, cost_function)
-        self.capacity = capacity      # total storage capacity (kWh)
+        self.capacity = capacity
         self.charge_rate = charge_rate
+        self.startup_rate = startup_rate
         self.efficiency = efficiency
-        self.soc = soc                # State of Charge [0, 1]
-        self.total_arbitrage = 0.0    # cumulative profit from trading
+        self.soc = soc
+        self.total_arbitrage = 0.0
+        self.policy = Policy(agent_type=3)  # Battery agent type
 
-        # Initialize policy network
-        self.policy = BatteryPolicy(input_size=9)  # matches observation size
-        self.autonomous_mode = False  # can switch between manual/autonomous
-
-    def act(self, action):
+    def act(self, state):
         """
-        Execute RL action: action ∈ [-1, 1] → charge_rate = action × max_charge_rate
+        Single action method: get observation, compute policy decision, execute action.
 
         Args:
-            action: Continuous action in [-1, 1]
-                   -1 = max discharge, 0 = no action, +1 = max charge
+            state: Environment state dictionary
 
         Returns:
-            self.delta_e: Actual electricity change
+            float: startup_rate * action (action in [-1, 1])
         """
-        # Clamp action to valid range
-        action = max(-1, min(1, action))
-        self.last_action = action
-        self.save_action(action)
+        observation = self._get_observation(state)
+        action = self.policy.select_action(observation, training=False)
 
-        if action > 0:  # charging
+        # Save action to history at the beginning
+        self.action_history.append(action)
+
+        # Action is already in [-1, 1] - perfect for battery
+        scaled_action = max(-1, min(1, action))
+
+        # Execute action
+        if scaled_action > 0:  # charging
             max_charge = min(self.charge_rate, (1 - self.soc) * self.capacity)
-            actual_charge = action * max_charge
+            actual_charge = scaled_action * max_charge
             self.delta_e = actual_charge
             self.soc += (actual_charge * self.efficiency) / self.capacity
-        elif action < 0:  # discharging
+        elif scaled_action < 0:  # discharging
             max_discharge = min(self.charge_rate, self.soc * self.capacity)
-            actual_discharge = abs(action) * max_discharge
+            actual_discharge = abs(scaled_action) * max_discharge
             self.delta_e = -actual_discharge
             self.soc -= actual_discharge / self.capacity
         else:  # no action
             self.delta_e = 0
 
-        # Ensure SoC stays within bounds
         self.soc = max(0, min(1, self.soc))
 
-        return self.delta_e
+        # Return startup_rate * action (action is already [-1, 1])
+        return self.startup_rate * action
 
-    def get_observation(self, state):
+    def _get_observation(self, state):
         """Convert state to normalized observation vector."""
         global_features = [
-            state.get("frequency", 60) / 60.0,         # normalized frequency
-            state.get("temperature", 0),                   # weather index [-1, 1]
-            state.get("avg_cost", 1.0) / 10.0,         # normalized cost
-            state.get("time_of_day", 12) / 24.0        # normalized hour
+            state.get("frequency", 60) / 60.0,
+            state.get("temperature", 0),
+            state.get("avg_cost", 1.0) / 10.0,
+            state.get("time_of_day", 12) / 24.0
         ]
 
-        # Agent-specific features
         agent_features = [
-            self.soc,                                  # state of charge [0, 1]
-            (self.capacity - abs(self.delta_e)) / self.capacity,  # capacity utilization
-            self.last_action,                          # previous action [-1, 1]
-            self.total_arbitrage / 100.0,             # normalized cumulative profit
-            self.episode_reward / 10.0                # normalized cumulative reward
+            self.soc,
+            (self.capacity - abs(self.delta_e)) / self.capacity,
+            self.episode_reward / 10.0
         ]
 
-        return self.normalize_features(global_features + agent_features)
+        return np.array(global_features + agent_features, dtype=np.float32)
 
     def compute_reward(self, state, all_agents):
         """
@@ -140,39 +139,3 @@ class BatteryAgent(BaseAgent):
         )
 
         return max(-1, min(1, total_reward))
-
-    def get_action_bounds(self):
-        """Battery actions are in [-1, 1]."""
-        return (-1.0, 1.0)
-
-    def select_autonomous_action(self, observation):
-        """
-        Use policy network to select action autonomously
-
-        Args:
-            observation: current state observation
-
-        Returns:
-            action: selected action from policy network
-        """
-        if self.autonomous_mode:
-            return self.policy.compute_action_value(observation, self.soc)
-        else:
-            # Return neutral action if not in autonomous mode
-            return 0.0
-
-    def set_autonomous_mode(self, enabled=True):
-        """Enable/disable autonomous decision making"""
-        self.autonomous_mode = enabled
-
-    def train_policy(self, observations, actions, rewards):
-        """
-        Train the policy network (placeholder for training logic)
-
-        Args:
-            observations: batch of observations
-            actions: batch of actions taken
-            rewards: batch of rewards received
-        """
-        # This would be implemented with actual RL training algorithm
-        pass
