@@ -1,53 +1,54 @@
 from agents.BaseAgent import BaseAgent
-from agents.policies.ConsumerPolicy import ConsumerPolicy
+from agents.Policy import Policy
 import numpy as np
 
 class ConsumerAgent(BaseAgent):
-    def __init__(self, agent_id, energy_consumption):
-        # Consumers don't use cost_function → force to None
+    def __init__(self, agent_id, energy_consumption, startup_rate=1.0):
         super().__init__(agent_id, cost_function=None)
         self.energy_consumption = energy_consumption
+        self.startup_rate = startup_rate
+        self.policy = Policy(agent_type=1)  # Consumer agent type
 
-        # Initialize policy network
-        self.policy = ConsumerPolicy(input_size=6)  # matches observation size
-        self.autonomous_mode = False  # can switch between manual/autonomous
-
-    def act(self, action):
+    def act(self, state):
         """
-        Execute RL action: action ∈ [0.5, 2.0] → consumption = action × energy_consumption
+        Single action method: get observation, compute policy decision, execute action.
 
         Args:
-            action: Continuous action in [0.5, 2.0]
+            state: Environment state dictionary
 
         Returns:
-            self.delta_e: Actual electricity consumed (negative)
+            float: startup_rate * action (action in [-1, 1])
         """
-        # Clamp action to valid range
-        action = max(0.5, min(2.0, action))
-        self.last_action = action
-        self.save_action(action)
+        observation = self._get_observation(state)
+        action = self.policy.select_action(observation, training=False)
 
-        # Convert action to actual consumption
-        self.delta_e = -action * self.energy_consumption  # negative for consumption
+        # Save action to history at the beginning
+        self.action_history.append(action)
 
-        return self.delta_e
+        # Scale [-1,1] to consumer bounds [0.5, 2.0] and execute
+        scaled_action = 1.25 + action * 0.75  # center at 1.25, range ±0.75
+        scaled_action = max(0.5, min(2.0, scaled_action))
 
-    def get_observation(self, state):
+        consumption = scaled_action * self.energy_consumption
+        self.delta_e = -consumption
+
+        # Return startup_rate * action (action is already [-1, 1])
+        return self.startup_rate * action
+
+    def _get_observation(self, state):
         """Convert state to normalized observation vector."""
         global_features = [
-            state.get("frequency", 60) / 60.0,         # normalized frequency
-            state.get("temperature", 0),                   # weather index [-1, 1]
-            state.get("avg_cost", 1.0) / 10.0,         # normalized cost
-            state.get("time_of_day", 12) / 24.0        # normalized hour
+            state.get("frequency", 60) / 60.0,
+            state.get("temperature", 0),
+            state.get("avg_cost", 1.0) / 10.0,
+            state.get("time_of_day", 12) / 24.0
         ]
 
-        # Agent-specific features
         agent_features = [
-            (self.last_action - 1.25) / 0.75,         # normalized action [-1, 1]
-            self.episode_reward / 10.0                 # normalized cumulative reward
+            self.episode_reward / 10.0
         ]
 
-        return self.normalize_features(global_features + agent_features)
+        return np.array(global_features + agent_features, dtype=np.float32)
 
     def compute_reward(self, state, all_agents):
         """
@@ -99,41 +100,4 @@ class ConsumerAgent(BaseAgent):
         )
 
         return max(-1, min(1, total_reward))
-
-    def get_action_bounds(self):
-        """Consumer actions are in [0.5, 2.0]."""
-        return (0.5, 2.0)
-
-    def select_autonomous_action(self, observation):
-        """
-        Use policy network to select action autonomously
-
-        Args:
-            observation: current state observation
-
-        Returns:
-            action: selected action from policy network
-        """
-        if self.autonomous_mode:
-            weather = observation[1] if len(observation) > 1 else 0
-            return self.policy.compute_consumption_action(observation, weather)
-        else:
-            # Return baseline action if not in autonomous mode
-            return 1.0
-
-    def set_autonomous_mode(self, enabled=True):
-        """Enable/disable autonomous decision making"""
-        self.autonomous_mode = enabled
-
-    def train_policy(self, observations, actions, rewards):
-        """
-        Train the policy network (placeholder for training logic)
-
-        Args:
-            observations: batch of observations
-            actions: batch of actions taken
-            rewards: batch of rewards received
-        """
-        # This would be implemented with actual RL training algorithm
-        pass
         

@@ -1,56 +1,56 @@
 from agents.BaseAgent import BaseAgent
-from agents.policies.ConsumerPolicy import ConsumerPolicy
+from agents.Policy import Policy
 import numpy as np
 
 class BusinessAgent(BaseAgent):
-    def __init__(self, agent_id, baseline_consumption):
-        # Businesses care about costs → use cost function
-        super().__init__(agent_id, cost_function=lambda e: abs(e) * 0.1)  # simple cost model
+    def __init__(self, agent_id, baseline_consumption, startup_rate=1.0):
+        super().__init__(agent_id, cost_function=lambda e: abs(e) * 0.1)
         self.baseline_consumption = baseline_consumption
-        self.current_consumption = baseline_consumption
+        self.startup_rate = startup_rate
+        self.policy = Policy(agent_type=0)  # Business agent type
 
-        # Initialize policy network
-        self.policy = ConsumerPolicy(input_size=7)  # matches observation size
-        self.autonomous_mode = False  # can switch between manual/autonomous
-
-    def act(self, action):
+    def act(self, state):
         """
-        Execute RL action: action ∈ [0.3, 1.5] → consumption = action × baseline_consumption
+        Single action method: get observation, compute policy decision, execute action.
 
         Args:
-            action: Continuous action in [0.3, 1.5] (businesses can reduce more than consumers)
+            state: Environment state dictionary
 
         Returns:
-            self.delta_e: Actual electricity consumed (negative)
+            float: startup_rate * action (action in [-1, 1])
         """
-        # Clamp action to valid range (businesses have more flexibility)
-        action = max(0.3, min(1.5, action))
-        self.last_action = action
-        self.save_action(action)
+        observation = self._get_observation(state)
+        action = self.policy.select_action(observation, training=False)
 
-        # Convert action to actual consumption
-        self.current_consumption = action * self.baseline_consumption
-        self.delta_e = -self.current_consumption  # negative for consumption
+        # Save action to history at the beginning
+        self.action_history.append(action)
 
-        return self.delta_e
+        # Scale [-1,1] to business bounds [0.3, 1.5] and execute
+        scaled_action = 0.9 + action * 0.6  # center at 0.9, range ±0.6
+        scaled_action = max(0.3, min(1.5, scaled_action))
 
-    def get_observation(self, state):
+        consumption = scaled_action * self.baseline_consumption
+        self.delta_e = -consumption
+
+        # Return startup_rate * action (action is already [-1, 1])
+        return self.startup_rate * action
+
+    def _get_observation(self, state):
         """Convert state to normalized observation vector."""
         global_features = [
-            state.get("frequency", 60) / 60.0,         # normalized frequency
-            state.get("temperature", 0),                   # weather index [-1, 1]
-            state.get("avg_cost", 1.0) / 10.0,         # normalized cost (important for businesses)
-            state.get("time_of_day", 12) / 24.0        # normalized hour
+            state.get("frequency", 60) / 60.0,
+            state.get("temperature", 0),
+            state.get("avg_cost", 1.0) / 10.0,
+            state.get("time_of_day", 12) / 24.0
         ]
 
-        # Agent-specific features
         agent_features = [
-            self.current_consumption / self.baseline_consumption,  # consumption multiplier
-            (self.last_action - 0.9) / 0.6,           # normalized action [-1, 1]
-            self.episode_reward / 10.0                 # normalized cumulative reward
+            abs(self.delta_e) / self.baseline_consumption,
+            self.episode_reward / 10.0,
+            0.0  # agent type identifier
         ]
 
-        return self.normalize_features(global_features + agent_features)
+        return np.array(global_features + agent_features, dtype=np.float32)
 
     def compute_reward(self, state, all_agents):
         """
@@ -111,40 +111,3 @@ class BusinessAgent(BaseAgent):
         )
 
         return max(-1, min(1, total_reward))
-
-    def get_action_bounds(self):
-        """Business actions are in [0.3, 1.5]."""
-        return (0.3, 1.5)
-
-    def select_autonomous_action(self, observation):
-        """
-        Use policy network to select action autonomously
-
-        Args:
-            observation: current state observation
-
-        Returns:
-            action: selected action from policy network
-        """
-        if self.autonomous_mode:
-            price = observation[2] if len(observation) > 2 else 1.0  # price awareness
-            return self.policy.compute_business_action(observation, price)
-        else:
-            # Return baseline action if not in autonomous mode
-            return 1.0
-
-    def set_autonomous_mode(self, enabled=True):
-        """Enable/disable autonomous decision making"""
-        self.autonomous_mode = enabled
-
-    def train_policy(self, observations, actions, rewards):
-        """
-        Train the policy network (placeholder for training logic)
-
-        Args:
-            observations: batch of observations
-            actions: batch of actions taken
-            rewards: batch of rewards received
-        """
-        # This would be implemented with actual RL training algorithm
-        pass
