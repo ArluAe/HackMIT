@@ -21,7 +21,8 @@ class Node:
     def add_connections(self, connections):
         self.connections = connections
 
-    def time_step(self):
+    def time_step(self, state):
+        d2offset = self.agent.select_autonomous_action(state)
         self.doffset = self.doffset + self.d2offset * self.dt
         self.offset = self.offset + self.doffset * self.dt
     

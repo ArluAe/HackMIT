@@ -1,13 +1,15 @@
 from Node import Node
 from Branch import Branch
 from collections import defaultdict
+from temperature2 import get_daily_temperature
+import numpy as np
 
 class PowerGrid:
     def __init__(self, ppc, dt, target_hz=60):
         self.size = len(ppc["bus"])
         self.branches = defaultdict(lambda : list())
         self.nodes = [None] * self.size
-        self.dt = dt
+        self.dt = dt # minutes
         self.target_hz = target_hz
         self.grid_frequency = target_hz
         self.temperature = 25 # Celsius
@@ -35,30 +37,33 @@ class PowerGrid:
     def get_node(self, index):
         return self.nodes[index]
     
-    def time_step(self):
+    def time_step(self, temperature, time_of_day):
+        state = dict()
+        state["frequency"] = self.grid_frequency
+        state["temperature"] = temperature
+        state["avg_price"] = 0 # implement
+        state["time_of_day"] = time_of_day
+
+        # Run time step process on all nodes PARALLELIZATION HERE
         for node in self.nodes:
-            node.time_step()
+            node.time_step(state)
         
+        # Recalculate the grid frequency
         pertubation = 0
         for node in self.nodes:
             pertubation += (node.inertia * node.get_transmission())
         
         pertubation = pertubation / sum([node.inertia for node in self.nodes])
 
-        self.grid_frequency -= pertubation * self.dt
+        self.grid_frequency += pertubation * self.dt
+
 
     def simulate_day(self):
-        
-        for node in self.nodes:
-            node.time_step()
+        time_values = np.linspace(0, 1440 - int(self.dt), num=int(1440/self.t))
+        warming_factor = 10 * np.random.rand() + 5
+        temps = 20 + warming_factor * -np.cos(time_values / (1440 - int(self.dt)) * 2 * np.pi - 180)
+        for i in range(len(temps)):
+            self.time_step(temps[i], time_values[i])
 
-        self.time_step()
 
-        state = dict()
-        state["frequency"] = self.grid_frequency
-        state["temperature"] = self.temperature
-        state["avg_price"] = 0 # implement
-        state["time_of_day"] = 0 # implement
 
-        for node in self.nodes:
-            node.d2offset = node.agent.act(state)
