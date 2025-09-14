@@ -11,6 +11,7 @@ class PowerGrid:
         self.target_hz = target_hz
         self.total_inertia = 0
         self.grid_frequency = target_hz  # Initialize grid frequency
+        self.pertubation = 0  # Initialize pertubation
         
         # Store the network dictionary as instance variable
         self.network_dict = network_dict
@@ -110,6 +111,7 @@ class PowerGrid:
         current_price = self.calculate_electricity_price()
 
         state = dict()
+
         state["frequency"] = self.grid_frequency
         state["avg_cost"] = current_price
         state["time_of_day"] = time_of_day
@@ -119,11 +121,11 @@ class PowerGrid:
             node.time_step(state)
         
         # Calculate the pertubation of the grid frequency
-        pertubation = 0
+        self.pertubation = 0
         for node in self.nodes.values():
-            pertubation += (node.inertia * node.get_transmission())
+            self.pertubation += (node.inertia * node.get_transmission())
 
-        print(f"Pertubation: {pertubation}")
+        # print(f"Pertubation: {self.pertubation}")
 
         # Calculate new price after actions
         new_price = self.calculate_electricity_price()
@@ -255,6 +257,46 @@ class PowerGrid:
         self.network_dict["simulation"]["nodes"] = [
             node for node in self.network_dict["simulation"]["nodes"] 
             if node["id"] != node_id
+        ]
+        
+        return True
+
+
+    def remove_connection(self, connection_id):
+        """Remove a connection from the network by ID"""
+        # Find the connection in network_dict
+        connection = None
+        for conn in self.network_dict["simulation"]["connections"]:
+            if conn["id"] == connection_id:
+                connection = conn
+                break
+        
+        if connection is None:
+            return False
+        
+        from_id = connection["from"]
+        to_id = connection["to"]
+        
+        # Find and remove the branch
+        branch_to_remove = None
+        for branch in self.branches[from_id]:
+            if (branch.node0.node_id == from_id and branch.node1.node_id == to_id) or \
+               (branch.node0.node_id == to_id and branch.node1.node_id == from_id):
+                branch_to_remove = branch
+                break
+        
+        if branch_to_remove:
+            self.branches[from_id].remove(branch_to_remove)
+            self.branches[to_id].remove(branch_to_remove)
+            
+            # Update node connections
+            self.nodes[from_id].add_connections(self.branches[from_id])
+            self.nodes[to_id].add_connections(self.branches[to_id])
+        
+        # Remove from network_dict
+        self.network_dict["simulation"]["connections"] = [
+            conn for conn in self.network_dict["simulation"]["connections"] 
+            if conn["id"] != connection_id
         ]
         
         return True
