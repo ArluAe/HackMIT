@@ -60,12 +60,11 @@ export default function SimulationAnalysisPage() {
   const MAX_DATA_POINTS = 200; // Show last 200 data points
 
   useEffect(() => {
-    // Check if simulation is running
-    const checkSimulationStatus = () => {
-      setIsSimulationRunning(true);
-    };
-
-    checkSimulationStatus();
+    // Start the simulation automatically when the page loads
+    // If no nodes provided, the engine will use demo data
+    console.log('🚀 Starting simulation engine for analysis page');
+    simulationEngine.start([], []); // Start with empty arrays - engine will generate demo data
+    setIsSimulationRunning(true);
 
     const handleSimulationUpdate = (data: SimulationData) => {
       setCurrentData(data);
@@ -74,7 +73,7 @@ export default function SimulationAnalysisPage() {
         return newData.slice(-MAX_DATA_POINTS); // Keep only last 200 points
       });
       setMetrics(simulationEngine.getMetrics());
-      
+
       // Update chart data
       updateChartData(data);
     };
@@ -83,6 +82,7 @@ export default function SimulationAnalysisPage() {
 
     return () => {
       simulationEngine.unsubscribe(handleSimulationUpdate);
+      // Don't stop the engine here - let the user control it
     };
   }, []);
 

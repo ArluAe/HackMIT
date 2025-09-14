@@ -1,0 +1,77 @@
+{
+  "simulation": {
+    "nodes": [
+      {
+        "id": "solar-1",
+        "type": "solar-generator",
+        "x": 100,
+        "y": 100,
+        "power": 200,
+        "settings": {
+          "power": 200,
+          "inertia": 1.0,
+          "friction": 0.1
+        }
+      },
+      {
+        "id": "wind-1",
+        "type": "wind-generator",
+        "x": 300,
+        "y": 100,
+        "power": 150,
+        "settings": {
+          "power": 150,
+          "inertia": 1.2,
+          "friction": 0.1
+        }
+      },
+      {
+        "id": "home-1",
+        "type": "residential",
+        "x": 200,
+        "y": 300,
+        "power": 80,
+        "settings": {
+          "power": 80,
+          "inertia": 0.5,
+          "friction": 0.2
+        }
+      },
+      {
+        "id": "business-1",
+        "type": "commercial-building",
+        "x": 400,
+        "y": 300,
+        "power": 120,
+        "settings": {
+          "power": 120,
+          "inertia": 0.8,
+          "friction": 0.15
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "c1",
+        "from": "solar-1",
+        "to": "home-1",
+        "resistance": 0.1,
+        "maxPower": 300
+      },
+      {
+        "id": "c2",
+        "from": "wind-1",
+        "to": "business-1",
+        "resistance": 0.12,
+        "maxPower": 250
+      },
+      {
+        "id": "c3",
+        "from": "solar-1",
+        "to": "business-1",
+        "resistance": 0.08,
+        "maxPower": 200
+      }
+    ]
+  }
+}

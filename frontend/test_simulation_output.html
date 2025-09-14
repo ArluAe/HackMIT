@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Engine Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+        }
+        .metric {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        .value {
+            float: right;
+            color: #ffff00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 Simulation Engine Test Output</h1>
+    <div id="status"></div>
+    <div id="metrics"></div>
+
+    <script type="module">
+        // Simulate the simulation engine behavior
+        class TestSimulationEngine {
+            constructor() {
+                this.isRunning = false;
+                this.currentTime = 0;
+                this.callbacks = [];
+            }
+
+            start() {
+                if (this.isRunning) return;
+                this.isRunning = true;
+                this.currentTime = 0;
+
+                // Generate data every 100ms
+                this.intervalId = setInterval(() => {
+                    this.tick();
+                }, 100);
+            }
+
+            tick() {
+                this.currentTime += 1;
+                const data = this.generateTestData();
+                this.callbacks.forEach(cb => cb(data));
+            }
+
+            generateTestData() {
+                const time = this.currentTime;
+                const hourOfDay = (time % 86400) / 3600;
+
+                // Generate realistic values
+                const totalSupply = 1500 + Math.sin(time * 0.01) * 200 + Math.random() * 100;
+                const totalDemand = 1400 + Math.cos(time * 0.008) * 300 + Math.random() * 150;
+                const gridFrequency = 60 + (totalSupply - totalDemand) * 0.001 + (Math.random() - 0.5) * 0.2;
+
+                return {
+                    timestamp: time,
+                    totalSupply: totalSupply,
+                    totalDemand: totalDemand,
+                    gridFrequency: gridFrequency,
+                    efficiency: Math.min(totalDemand / totalSupply, 1),
+                    carbonEmissions: totalSupply * 0.4,
+                    renewablePercentage: 35 + Math.sin(hourOfDay * Math.PI / 12) * 15,
+                    gridStability: 0.85 + Math.random() * 0.15,
+                    powerQuality: 0.9 + Math.random() * 0.1,
+                    voltageLevel: 400 + (Math.random() - 0.5) * 20
+                };
+            }
+
+            subscribe(callback) {
+                this.callbacks.push(callback);
+            }
+
+            stop() {
+                this.isRunning = false;
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                }
+            }
+        }
+
+        // Create and start the test engine
+        const engine = new TestSimulationEngine();
+        const statusEl = document.getElementById('status');
+        const metricsEl = document.getElementById('metrics');
+
+        let dataPoints = 0;
+
+        engine.subscribe((data) => {
+            dataPoints++;
+
+            statusEl.innerHTML = `
+                <div class="metric">
+                    Status <span class="value">RUNNING</span>
+                </div>
+                <div class="metric">
+                    Data Points Generated <span class="value">${dataPoints}</span>
+                </div>
+                <div class="metric">
+                    Update Rate <span class="value">10 Hz</span>
+                </div>
+            `;
+
+            metricsEl.innerHTML = `
+                <h2>📊 Live Metrics</h2>
+                <div class="metric">
+                    Grid Frequency <span class="value">${data.gridFrequency.toFixed(3)} Hz</span>
+                </div>
+                <div class="metric">
+                    Total Supply <span class="value">${data.totalSupply.toFixed(1)} MW</span>
+                </div>
+                <div class="metric">
+                    Total Demand <span class="value">${data.totalDemand.toFixed(1)} MW</span>
+                </div>
+                <div class="metric">
+                    Power Imbalance <span class="value">${(data.totalSupply - data.totalDemand).toFixed(1)} MW</span>
+                </div>
+                <div class="metric">
+                    Efficiency <span class="value">${(data.efficiency * 100).toFixed(1)}%</span>
+                </div>
+                <div class="metric">
+                    Renewable Share <span class="value">${data.renewablePercentage.toFixed(1)}%</span>
+                </div>
+                <div class="metric">
+                    Grid Stability <span class="value">${(data.gridStability * 100).toFixed(1)}%</span>
+                </div>
+                <div class="metric">
+                    Voltage Level <span class="value">${data.voltageLevel.toFixed(1)} V</span>
+                </div>
+            `;
+        });
+
+        engine.start();
+        console.log('✅ Test simulation engine started successfully!');
+        console.log('📈 Generating data at 10 Hz (100ms intervals)');
+        console.log('🎯 Data includes stochastic variations for realistic behavior');
+    </script>
+</body>
+</html>

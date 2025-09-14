@@ -196,38 +196,38 @@ class SimulationEngine {
     const time = this.currentTime;
     const hourOfDay = (time % 86400) / 3600; // 24-hour cycle
     const dayOfWeek = Math.floor(time / 86400) % 7; // 0 = Sunday, 6 = Saturday
-    
+
     // Generate realistic weather data
     const weatherData = this.generateWeatherData(hourOfDay, time);
-    
+
     // Calculate base demand with realistic patterns
     const baseDemand = this.calculateRealisticDemand(hourOfDay, dayOfWeek, weatherData);
-    
+
     // Calculate supply with weather-dependent renewable generation
     const supplyData = this.calculateRealisticSupply(weatherData, hourOfDay);
-    
+
     // Calculate grid stability and power quality
     const gridStability = this.calculateGridStability(baseDemand, supplyData.totalSupply);
     const powerQuality = this.calculatePowerQuality(gridStability, supplyData.renewablePercentage);
-    
+
     // Calculate environmental impact
     const carbonEmissions = this.calculateCarbonEmissions(supplyData, weatherData);
     const renewablePercentage = supplyData.renewablePercentage;
-    
+
     // Calculate market data
     const marketData = this.calculateMarketData(baseDemand, supplyData.totalSupply, hourOfDay);
-    
+
     // Generate detailed node data
     const nodeData = this.generateDetailedNodeData(weatherData, hourOfDay);
-    
+
     // Calculate efficiency and cost
     const efficiency = supplyData.totalSupply > 0 ? Math.min(baseDemand / supplyData.totalSupply, 1) : 0;
     const cost = this.calculateRealisticCost(baseDemand, supplyData.totalSupply, marketData);
-    
-    // Grid frequency with realistic control
+
+    // Grid frequency with realistic control (60 Hz base for US grid)
     const frequencyDeviation = this.calculateFrequencyDeviation(baseDemand, supplyData.totalSupply, gridStability);
-    const gridFrequency = 50 + frequencyDeviation;
-    
+    const gridFrequency = 60 + frequencyDeviation; // Changed from 50 to 60 Hz for US grid
+
     // Voltage level
     const voltageLevel = 400 + (Math.random() - 0.5) * 20; // 380-420V range
 
@@ -271,13 +271,13 @@ class SimulationEngine {
   private calculateRealisticDemand(hourOfDay: number, dayOfWeek: number, weather: any): number {
     // Base demand varies by day of week
     const weekendMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 0.85 : 1.0;
-    
+
     // Temperature effect on demand (HVAC load)
     const tempEffect = Math.abs(weather.temperature - 22) * 0.02; // 2% per degree from 22°C
-    
+
     // Realistic daily demand curve
     let baseDemand = 1000; // Base demand in MW
-    
+
     // Peak hours with realistic patterns
     if (hourOfDay >= 7 && hourOfDay <= 9) {
       baseDemand *= 1.4; // Morning peak
@@ -290,11 +290,11 @@ class SimulationEngine {
     } else {
       baseDemand *= 0.8 + (hourOfDay - 6) * 0.05; // Gradual increase
     }
-    
+
     // Add realistic fluctuations
     const randomFluctuation = (Math.random() - 0.5) * 0.1; // ±5%
-    const seasonalVariation = Math.sin(time * 0.0001) * 0.1; // Seasonal cycle
-    
+    const seasonalVariation = Math.sin(this.currentTime * 0.0001) * 0.1; // Seasonal cycle - fixed to use this.currentTime
+
     return baseDemand * weekendMultiplier * (1 + tempEffect + randomFluctuation + seasonalVariation);
   }
 
@@ -302,53 +302,66 @@ class SimulationEngine {
     let totalSupply = 0;
     let renewableSupply = 0;
     let conventionalSupply = 0;
-    
-    this.nodes.forEach(node => {
-      if (node.type.includes('generator') || node.type === 'battery-storage') {
-        const basePower = node.settings.power;
-        let power = 0;
-        
-        if (node.type === 'solar-generator') {
-          // Solar depends on irradiance and time of day
-          const solarEfficiency = Math.max(0, weather.solarIrradiance / 1000);
-          const timeEfficiency = Math.max(0, Math.sin((hourOfDay - 6) * Math.PI / 12));
-          power = basePower * solarEfficiency * timeEfficiency * (0.8 + Math.random() * 0.4);
-          renewableSupply += power;
-        } else if (node.type === 'wind-generator') {
-          // Wind depends on wind speed (cubic relationship)
-          const windEfficiency = Math.min(1, Math.pow(weather.windSpeed / 15, 3));
-          power = basePower * windEfficiency * (0.7 + Math.random() * 0.6);
-          renewableSupply += power;
-        } else if (node.type === 'hydro-generator') {
-          // Hydro is more stable but varies with season
-          const seasonalFactor = 0.8 + 0.4 * Math.sin(time * 0.0001);
-          power = basePower * seasonalFactor * (0.9 + Math.random() * 0.2);
-          renewableSupply += power;
-        } else if (node.type === 'nuclear-generator') {
-          // Nuclear is very stable
-          power = basePower * (0.95 + Math.random() * 0.1);
-          conventionalSupply += power;
-        } else if (node.type === 'coal-generator') {
-          // Coal varies with demand
-          power = basePower * (0.7 + Math.random() * 0.6);
-          conventionalSupply += power;
-        } else if (node.type === 'battery-storage') {
-          // Battery behavior depends on grid state
-          const isCharging = Math.random() > 0.6;
-          if (isCharging) {
-            power = -basePower * 0.3; // Negative = charging
-          } else {
-            power = basePower * 0.4; // Discharging
+
+    // If no nodes, generate default supply data for demo
+    if (this.nodes.length === 0) {
+      // Create virtual default power generation
+      const solarPower = 500 * Math.max(0, Math.sin((hourOfDay - 6) * Math.PI / 12)) * (0.8 + Math.random() * 0.4);
+      const windPower = 300 * Math.min(1, Math.pow(weather.windSpeed / 15, 3)) * (0.7 + Math.random() * 0.6);
+      const nuclearPower = 800 * (0.95 + Math.random() * 0.1);
+      const coalPower = 400 * (0.7 + Math.random() * 0.6);
+
+      renewableSupply = solarPower + windPower;
+      conventionalSupply = nuclearPower + coalPower;
+      totalSupply = renewableSupply + conventionalSupply;
+    } else {
+      this.nodes.forEach(node => {
+        if (node.type.includes('generator') || node.type === 'battery-storage') {
+          const basePower = node.settings.power;
+          let power = 0;
+
+          if (node.type === 'solar-generator') {
+            // Solar depends on irradiance and time of day
+            const solarEfficiency = Math.max(0, weather.solarIrradiance / 1000);
+            const timeEfficiency = Math.max(0, Math.sin((hourOfDay - 6) * Math.PI / 12));
+            power = basePower * solarEfficiency * timeEfficiency * (0.8 + Math.random() * 0.4);
+            renewableSupply += power;
+          } else if (node.type === 'wind-generator') {
+            // Wind depends on wind speed (cubic relationship)
+            const windEfficiency = Math.min(1, Math.pow(weather.windSpeed / 15, 3));
+            power = basePower * windEfficiency * (0.7 + Math.random() * 0.6);
+            renewableSupply += power;
+          } else if (node.type === 'hydro-generator') {
+            // Hydro is more stable but varies with season
+            const seasonalFactor = 0.8 + 0.4 * Math.sin(this.currentTime * 0.0001);
+            power = basePower * seasonalFactor * (0.9 + Math.random() * 0.2);
+            renewableSupply += power;
+          } else if (node.type === 'nuclear-generator') {
+            // Nuclear is very stable
+            power = basePower * (0.95 + Math.random() * 0.1);
+            conventionalSupply += power;
+          } else if (node.type === 'coal-generator') {
+            // Coal varies with demand
+            power = basePower * (0.7 + Math.random() * 0.6);
+            conventionalSupply += power;
+          } else if (node.type === 'battery-storage') {
+            // Battery behavior depends on grid state
+            const isCharging = Math.random() > 0.6;
+            if (isCharging) {
+              power = -basePower * 0.3; // Negative = charging
+            } else {
+              power = basePower * 0.4; // Discharging
+            }
+            renewableSupply += Math.abs(power);
           }
-          renewableSupply += Math.abs(power);
+
+          totalSupply += Math.abs(power);
         }
-        
-        totalSupply += Math.abs(power);
-      }
-    });
-    
+      });
+    }
+
     const renewablePercentage = totalSupply > 0 ? (renewableSupply / totalSupply) * 100 : 0;
-    
+
     return {
       totalSupply,
       renewableSupply,
@@ -397,7 +410,70 @@ class SimulationEngine {
 
   private generateDetailedNodeData(weather: any, hourOfDay: number): any {
     const nodeData: any = {};
-    
+
+    // If no nodes, generate default data for demo
+    if (this.nodes.length === 0) {
+      // Generate demo battery data
+      for (let i = 1; i <= 3; i++) {
+        const batteryId = `battery-${i}`;
+        const batteryLevel = 20 + Math.random() * 60; // 20-80% charge
+        const isCharging = batteryLevel < 30 || (Math.random() > 0.7);
+
+        nodeData[batteryId] = {
+          power: isCharging ? 0 : 100 * 0.4,
+          demand: isCharging ? 100 * 0.3 : 0,
+          efficiency: 0.9,
+          status: 'active',
+          temperature: weather.temperature + (Math.random() - 0.5) * 10,
+          voltage: 400 + (Math.random() - 0.5) * 40,
+          current: isCharging ? 100 * 0.3 / 400 : 100 * 0.4 / 400,
+          powerFactor: 0.85 + Math.random() * 0.15,
+          carbonFootprint: 10
+        };
+        nodeData[`${batteryId}_level`] = batteryLevel;
+      }
+
+      // Generate demo generator data
+      nodeData['solar-1'] = {
+        power: 500 * Math.max(0, Math.sin((hourOfDay - 6) * Math.PI / 12)) * (0.8 + Math.random() * 0.4),
+        demand: 0,
+        efficiency: 0.85,
+        status: 'active',
+        temperature: weather.temperature + 5,
+        voltage: 400 + (Math.random() - 0.5) * 20,
+        current: 2,
+        powerFactor: 0.95,
+        carbonFootprint: 25
+      };
+
+      nodeData['wind-1'] = {
+        power: 300 * Math.min(1, Math.pow(weather.windSpeed / 15, 3)) * (0.7 + Math.random() * 0.6),
+        demand: 0,
+        efficiency: 0.88,
+        status: 'active',
+        temperature: weather.temperature,
+        voltage: 400 + (Math.random() - 0.5) * 20,
+        current: 1.5,
+        powerFactor: 0.92,
+        carbonFootprint: 20
+      };
+
+      // Generate demo consumer data
+      nodeData['residential-1'] = {
+        power: 0,
+        demand: 200 * (0.7 + Math.random() * 0.6),
+        efficiency: 1,
+        status: 'active',
+        temperature: weather.temperature + (Math.random() - 0.5) * 5,
+        voltage: 400 + (Math.random() - 0.5) * 30,
+        current: 0.8,
+        powerFactor: 0.88,
+        carbonFootprint: 100
+      };
+
+      return nodeData;
+    }
+
     this.nodes.forEach(node => {
       const nodeType = node.type;
       let power = 0;

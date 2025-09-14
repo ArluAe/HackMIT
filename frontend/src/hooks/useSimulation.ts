@@ -184,14 +184,24 @@ export const useSimulation = () => {
   const toggleSimulation = () => {
     const newRunningState = !isSimulationRunning;
     setIsSimulationRunning(newRunningState);
-    
+
     if (newRunningState) {
-      // Start simulation
+      // Ensure we have nodes to simulate
+      if (nodes.length === 0) {
+        console.warn('No nodes available for simulation');
+        setIsSimulationRunning(false);
+        return;
+      }
+
+      // Start frontend-only simulation with current network topology
+      console.log('🚀 Starting frontend-only simulation with', nodes.length, 'nodes and', connections.length, 'connections');
       simulationEngine.start(nodes, connections);
-      // Navigate to analysis page
+
+      // Navigate to analysis page to view real-time graphs
       window.open('/simulation/analysis', '_blank');
     } else {
       // Stop simulation
+      console.log('⏹️ Stopping simulation');
       simulationEngine.stop();
     }
   };

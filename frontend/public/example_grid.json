@@ -1,0 +1,216 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "Mixed Energy Grid Example",
+    "description": "Example grid with renewable and conventional sources",
+    "createdAt": "2025-01-14T12:00:00.000Z",
+    "author": "GridForge User"
+  },
+  "simulation": {
+    "nodes": [
+      {
+        "id": "solar_1",
+        "type": "solar-generator",
+        "x": 200,
+        "y": 150,
+        "name": "Solar Farm A",
+        "power": 750,
+        "status": "active",
+        "settings": {
+          "power": 750,
+          "type": "solar-generator",
+          "inertia": 2,
+          "friction": 0.5
+        }
+      },
+      {
+        "id": "wind_1",
+        "type": "wind-generator",
+        "x": 400,
+        "y": 150,
+        "name": "Wind Farm B",
+        "power": 600,
+        "status": "active",
+        "settings": {
+          "power": 600,
+          "type": "wind-generator",
+          "inertia": 5,
+          "friction": 1
+        }
+      },
+      {
+        "id": "gas_1",
+        "type": "natural-gas-generator",
+        "x": 600,
+        "y": 150,
+        "name": "Natural Gas Plant",
+        "power": 1200,
+        "status": "active",
+        "settings": {
+          "power": 1200,
+          "type": "natural-gas-generator",
+          "inertia": 8,
+          "friction": 2
+        }
+      },
+      {
+        "id": "coal_1",
+        "type": "coal-generator",
+        "x": 800,
+        "y": 150,
+        "name": "Coal Power Plant",
+        "power": 1500,
+        "status": "active",
+        "settings": {
+          "power": 1500,
+          "type": "coal-generator",
+          "inertia": 12,
+          "friction": 3
+        }
+      },
+      {
+        "id": "substation_1",
+        "type": "grid",
+        "x": 500,
+        "y": 350,
+        "name": "Main Substation",
+        "power": 2000,
+        "status": "active",
+        "settings": {
+          "power": 2000,
+          "type": "grid",
+          "inertia": 15,
+          "friction": 1
+        }
+      },
+      {
+        "id": "factory_1",
+        "type": "factory",
+        "x": 300,
+        "y": 500,
+        "name": "Manufacturing Plant",
+        "power": 800,
+        "status": "active",
+        "settings": {
+          "power": 800,
+          "type": "factory",
+          "inertia": 3,
+          "friction": 1.5
+        }
+      },
+      {
+        "id": "office_1",
+        "type": "commercial-building",
+        "x": 500,
+        "y": 500,
+        "name": "Office Complex",
+        "power": 300,
+        "status": "active",
+        "settings": {
+          "power": 300,
+          "type": "commercial-building",
+          "inertia": 1,
+          "friction": 0.8
+        }
+      },
+      {
+        "id": "residential_1",
+        "type": "residential",
+        "x": 700,
+        "y": 500,
+        "name": "Residential Area",
+        "power": 150,
+        "status": "active",
+        "settings": {
+          "power": 150,
+          "type": "residential",
+          "inertia": 0.5,
+          "friction": 0.3
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn_solar_sub",
+        "from": "solar_1",
+        "to": "substation_1",
+        "power": 0,
+        "status": "active",
+        "resistance": 0.8,
+        "maxPower": 800
+      },
+      {
+        "id": "conn_wind_sub",
+        "from": "wind_1",
+        "to": "substation_1",
+        "power": 0,
+        "status": "active",
+        "resistance": 0.9,
+        "maxPower": 650
+      },
+      {
+        "id": "conn_gas_sub",
+        "from": "gas_1",
+        "to": "substation_1",
+        "power": 0,
+        "status": "active",
+        "resistance": 0.5,
+        "maxPower": 1300
+      },
+      {
+        "id": "conn_coal_sub",
+        "from": "coal_1",
+        "to": "substation_1",
+        "power": 0,
+        "status": "active",
+        "resistance": 0.4,
+        "maxPower": 1600
+      },
+      {
+        "id": "conn_sub_factory",
+        "from": "substation_1",
+        "to": "factory_1",
+        "power": 0,
+        "status": "active",
+        "resistance": 1.2,
+        "maxPower": 900
+      },
+      {
+        "id": "conn_sub_office",
+        "from": "substation_1",
+        "to": "office_1",
+        "power": 0,
+        "status": "active",
+        "resistance": 1.0,
+        "maxPower": 350
+      },
+      {
+        "id": "conn_sub_residential",
+        "from": "substation_1",
+        "to": "residential_1",
+        "power": 0,
+        "status": "active",
+        "resistance": 1.5,
+        "maxPower": 200
+      }
+    ],
+    "families": [],
+    "layers": [
+      {
+        "layer": 0,
+        "name": "Individual Nodes",
+        "description": "Base layer with individual components",
+        "nodeCount": 8
+      }
+    ]
+  },
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 0.8
+  },
+  "settings": {
+    "simulationRunning": false,
+    "currentLayer": 0
+  }
+}
