@@ -22,7 +22,7 @@ export default function NodeEditModal({ node, isOpen, onClose, onSave }: NodeEdi
     if (node) {
       setFormData({
         name: node.name,
-        power: node.power,
+        power: node.settings.power,
         status: node.status,
       });
     }
@@ -33,8 +33,11 @@ export default function NodeEditModal({ node, isOpen, onClose, onSave }: NodeEdi
       const updatedNode: Node = {
         ...node,
         name: formData.name,
-        power: formData.power,
         status: formData.status,
+        settings: {
+          ...node.settings,
+          power: formData.power,
+        }
       };
       onSave(updatedNode);
       onClose();

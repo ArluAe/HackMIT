@@ -1,11 +1,18 @@
 export interface Node {
   id: string;
-  type: 'generator' | 'consumer' | 'storage' | 'grid' | 'group';
+  type: 'solar-generator' | 'wind-generator' | 'natural-gas-generator' | 'coal-generator' | 'hydroelectric-generator' | 'factory' | 'commercial-building' | 'residential' | 'battery-storage' | 'grid' | 'group';
   x: number;
   y: number;
   name: string;
-  power: number;
   status: 'active' | 'inactive' | 'charging' | 'discharging';
+
+  // Node settings dictionary
+  settings: {
+    power: number;
+    type: string;
+    inertia: number;
+    friction: number;
+  };
 
   // Hierarchical properties
   layer: number; // 0 = base layer, 1 = neighborhood, 2 = city, etc.
@@ -28,6 +35,8 @@ export interface Connection {
   to: string;
   power: number;
   status: 'active' | 'inactive';
+  resistance: number;
+  maxPower: number;
 }
 
 export interface SimulationState {

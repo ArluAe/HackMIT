@@ -6,6 +6,8 @@ import SimulationHeader from '@/components/simulation/SimulationHeader';
 import ControlPanel from '@/components/simulation/ControlPanel';
 import ReactFlowCanvas from '@/components/simulation/ReactFlowCanvas';
 import NodeEditModal from '@/components/simulation/nodes/NodeEditModal';
+import NodeCreationModal from '@/components/simulation/nodes/NodeCreationModal';
+import ConnectionCreationModal from '@/components/simulation/ConnectionCreationModal';
 import FamilyNameModal from '@/components/simulation/FamilyNameModal';
 import { Node } from '@/types/simulation';
 import '@/utils/debugLayout'; // Import debug utilities
@@ -49,7 +51,19 @@ export default function SimulationWorkspace() {
     // Import/Export functions
     exportGraph,
     importGraph,
-    applyLayout
+    applyLayout,
+    
+    // Node creation modal
+    isNodeCreationModalOpen,
+    pendingNodeType,
+    createNodeFromModal,
+    closeNodeCreationModal,
+    
+    // Connection creation modal
+    isConnectionCreationModalOpen,
+    pendingConnection,
+    createConnectionFromModal,
+    closeConnectionCreationModal
   } = useSimulation();
 
   const selectedNodeData = selectedNode ? nodes.find(n => n.id === selectedNode) || null : null;
@@ -227,6 +241,7 @@ export default function SimulationWorkspace() {
           onGetViewportCenter={handleGetViewportCenter}
           onGetViewport={handleGetViewport}
           onEditNode={handleEditNode}
+          onDeleteNode={deleteNode}
           currentLayer={currentLayer}
           selectedNodes={selectedNodes}
           isSelectionMode={isSelectionMode}
@@ -236,6 +251,25 @@ export default function SimulationWorkspace() {
           importedViewport={importedViewport}
         />
       </main>
+
+      {/* Node Creation Modal */}
+      <NodeCreationModal
+        isOpen={isNodeCreationModalOpen}
+        nodeType={pendingNodeType}
+        onClose={closeNodeCreationModal}
+        onCreateNode={createNodeFromModal}
+      />
+
+      {/* Connection Creation Modal */}
+      <ConnectionCreationModal
+        isOpen={isConnectionCreationModalOpen}
+        fromNodeId={pendingConnection?.from || null}
+        toNodeId={pendingConnection?.to || null}
+        fromNodeName={pendingConnection?.fromName || ''}
+        toNodeName={pendingConnection?.toName || ''}
+        onClose={closeConnectionCreationModal}
+        onCreateConnection={createConnectionFromModal}
+      />
 
       {/* Node Edit Modal - Rendered at workspace level */}
       <NodeEditModal

@@ -35,6 +35,7 @@ interface ReactFlowCanvasProps {
   onGetViewportCenter?: (getCenter: () => { x: number; y: number }) => void;
   onGetViewport?: (getViewport: () => { x: number; y: number; zoom: number }) => void;
   onEditNode: (node: SimulationNode) => void;
+  onDeleteNode: (nodeId: string) => void;
   // Hierarchical props
   currentLayer: number;
   selectedNodes: string[];
@@ -64,6 +65,7 @@ export default function ReactFlowCanvas({
   onGetViewportCenter,
   onGetViewport,
   onEditNode,
+  onDeleteNode,
   currentLayer,
   selectedNodes,
   isSelectionMode,
@@ -98,6 +100,7 @@ export default function ReactFlowCanvas({
               data: { 
                 ...node, 
                 onEditNode,
+                onDeleteNode,
                 onToggleSelection: isSelectionMode ? onToggleNodeSelection : undefined,
                 isSelected: selectedNodes.includes(node.id),
                 isSelectionMode
@@ -212,14 +215,26 @@ export default function ReactFlowCanvas({
       type: 'smoothstep',
       animated: conn.status === 'active',
       selected: selectedEdges.includes(conn.id),
+      label: selectedEdges.includes(conn.id) ? `${conn.resistance}Ω | ${conn.maxPower}kW` : undefined,
+      labelStyle: {
+        fontSize: '10px',
+        fill: 'rgba(255, 255, 255, 0.8)',
+        fontWeight: '500',
+      },
+      labelBgStyle: {
+        fill: 'rgba(0, 0, 0, 0.6)',
+        fillOpacity: 0.8,
+        rx: 4,
+        ry: 4,
+      },
       style: {
         stroke: selectedEdges.includes(conn.id) 
           ? 'rgba(59, 130, 246, 0.9)'  // Blue when selected
           : conn.status === 'active' 
-            ? 'rgba(147, 51, 234, 0.6)'  // Purple when active
-            : 'rgba(71, 85, 105, 0.4)',  // Gray when inactive
-        strokeWidth: selectedEdges.includes(conn.id) ? 3 : 2,  // Thicker when selected
-        opacity: selectedEdges.includes(conn.id) ? 1 : 0.7,    // More opaque when selected
+            ? 'rgba(147, 51, 234, 0.8)'  // Lighter purple when active
+            : 'rgba(71, 85, 105, 0.6)',  // Lighter gray when inactive
+        strokeWidth: selectedEdges.includes(conn.id) ? 4 : 3,  // Thicker lines
+        opacity: selectedEdges.includes(conn.id) ? 1 : 0.9,    // More opaque
       },
     })), [connections, selectedEdges]
   );

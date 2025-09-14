@@ -17,20 +17,55 @@ export const useSimulation = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [layerHistory, setLayerHistory] = useState<number[]>([0]);
 
+  // Node creation modal state
+  const [isNodeCreationModalOpen, setIsNodeCreationModalOpen] = useState(false);
+  const [pendingNodeType, setPendingNodeType] = useState<Node['type'] | null>(null);
+  const [pendingViewportCenter, setPendingViewportCenter] = useState<{ x: number; y: number } | undefined>(undefined);
+
+  // Connection creation modal state
+  const [isConnectionCreationModalOpen, setIsConnectionCreationModalOpen] = useState(false);
+  const [pendingConnection, setPendingConnection] = useState<{ from: string; to: string; fromName: string; toName: string } | null>(null);
+
   const addNode = (type: Node['type'], viewportCenter?: { x: number; y: number }) => {
+    // Show modal instead of directly creating node
+    setPendingNodeType(type);
+    setPendingViewportCenter(viewportCenter);
+    setIsNodeCreationModalOpen(true);
+  };
+
+  const createNodeFromModal = (nodeData: Partial<Node>) => {
+    if (!pendingNodeType) return;
+
     const newNode: Node = {
       id: Date.now().toString(),
-      type,
-      x: viewportCenter?.x || (400 + Math.random() * 200),
-      y: viewportCenter?.y || (300 + Math.random() * 200),
-      name: `${type.charAt(0).toUpperCase() + type.slice(1)} ${nodes.length + 1}`,
-      power: Math.floor(Math.random() * 500) + 100,
-      status: 'active',
+      type: pendingNodeType,
+      x: pendingViewportCenter?.x || (400 + Math.random() * 200),
+      y: pendingViewportCenter?.y || (300 + Math.random() * 200),
+      name: nodeData.name || `${pendingNodeType.charAt(0).toUpperCase() + pendingNodeType.slice(1)} ${nodes.length + 1}`,
+      status: nodeData.status || 'active',
+      settings: {
+        power: nodeData.settings?.power || 100,
+        type: pendingNodeType,
+        inertia: nodeData.settings?.inertia || 0,
+        friction: nodeData.settings?.friction || 0
+      },
       layer: currentLayer,
       childNodes: [],
-      isGroup: type === 'group'
+      isGroup: pendingNodeType === 'group'
     };
+    
     setNodes([...nodes, newNode]);
+    
+    // Reset modal state
+    setIsNodeCreationModalOpen(false);
+    setPendingNodeType(null);
+    setPendingViewportCenter(undefined);
+  };
+
+  const closeNodeCreationModal = () => {
+    setIsNodeCreationModalOpen(false);
+    setPendingNodeType(null);
+    setPendingViewportCenter(undefined);
   };
 
   const deleteNode = (nodeId: string) => {
@@ -56,15 +91,45 @@ export const useSimulation = () => {
     );
     
     if (!existingConnection) {
-      const newConnection: Connection = {
-        id: Date.now().toString(),
-        from,
-        to,
-        power: 100,
-        status: 'active'
-      };
-      setConnections([...connections, newConnection]);
+      // Get node names for the modal
+      const fromNode = nodes.find(n => n.id === from);
+      const toNode = nodes.find(n => n.id === to);
+      
+      if (fromNode && toNode) {
+        setPendingConnection({
+          from,
+          to,
+          fromName: fromNode.name,
+          toName: toNode.name
+        });
+        setIsConnectionCreationModalOpen(true);
+      }
     }
+  };
+
+  const createConnectionFromModal = (connectionData: Partial<Connection>) => {
+    if (!pendingConnection) return;
+
+    const newConnection: Connection = {
+      id: Date.now().toString(),
+      from: pendingConnection.from,
+      to: pendingConnection.to,
+      power: connectionData.power || 0,
+      status: connectionData.status || 'active',
+      resistance: connectionData.resistance || 1.0,
+      maxPower: connectionData.maxPower || 1000
+    };
+    
+    setConnections([...connections, newConnection]);
+    
+    // Reset modal state
+    setIsConnectionCreationModalOpen(false);
+    setPendingConnection(null);
+  };
+
+  const closeConnectionCreationModal = () => {
+    setIsConnectionCreationModalOpen(false);
+    setPendingConnection(null);
   };
 
   const deleteConnection = (connectionIds: string[]) => {
@@ -97,9 +162,9 @@ export const useSimulation = () => {
 
   const getNetworkStats = () => {
     return {
-      totalGeneration: nodes.filter(n => n.type === 'generator').reduce((sum, n) => sum + n.power, 0),
-      totalConsumption: nodes.filter(n => n.type === 'consumer').reduce((sum, n) => sum + n.power, 0),
-      storageCapacity: nodes.filter(n => n.type === 'storage').reduce((sum, n) => sum + n.power, 0),
+      totalGeneration: nodes.filter(n => n.type.includes('generator')).reduce((sum, n) => sum + n.settings.power, 0),
+      totalConsumption: nodes.filter(n => n.type === 'factory' || n.type === 'commercial-building' || n.type === 'residential').reduce((sum, n) => sum + n.settings.power, 0),
+      storageCapacity: nodes.filter(n => n.type === 'battery-storage').reduce((sum, n) => sum + n.settings.power, 0),
       activeNodes: nodes.filter(n => n.status === 'active').length
     };
   };
@@ -369,6 +434,18 @@ export const useSimulation = () => {
     // Import/Export actions
     exportGraph,
     importGraph,
-    applyLayout
+    applyLayout,
+    
+    // Node creation modal
+    isNodeCreationModalOpen,
+    pendingNodeType,
+    createNodeFromModal,
+    closeNodeCreationModal,
+    
+    // Connection creation modal
+    isConnectionCreationModalOpen,
+    pendingConnection,
+    createConnectionFromModal,
+    closeConnectionCreationModal
   };
 };
