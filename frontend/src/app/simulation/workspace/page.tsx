@@ -34,6 +34,7 @@ export default function SimulationWorkspace() {
     deleteNode,
     updateNodePosition,
     addConnection,
+    addGroupConnection,
     deleteConnection,
     toggleSimulation,
     getNetworkStats,
@@ -87,6 +88,10 @@ export default function SimulationWorkspace() {
 
   const handleConnectionFinish = (fromId: string, toId: string) => {
     addConnection(fromId, toId);
+  };
+
+  const handleGroupConnectionFinish = (fromFamilyId: string, toFamilyId: string) => {
+    addGroupConnection(fromFamilyId, toFamilyId);
   };
 
   const handleGetViewportCenter = useCallback((getCenter: () => { x: number; y: number }) => {
@@ -172,7 +177,7 @@ export default function SimulationWorkspace() {
 
   // Import/Export handlers
   const handleExportGraph = useCallback(() => {
-    const simulationName = prompt('Enter simulation name:', 'GridForge Simulation') || 'GridForge Simulation';
+    const simulationName = prompt('Enter simulation name:', 'EnergyLens Simulation') || 'EnergyLens Simulation';
     
     // Get current viewport if available
     const currentViewport = getViewport ? getViewport() : { x: 0, y: 0, zoom: 1 };
@@ -266,6 +271,7 @@ export default function SimulationWorkspace() {
           onNodeMouseMove={handleNodeMouseMove}
           onNodeMouseUp={handleNodeMouseUp}
           onConnectionFinish={handleConnectionFinish}
+          onGroupConnectionFinish={handleGroupConnectionFinish}
           onConnectionDelete={handleConnectionDelete}
           onGetViewportCenter={handleGetViewportCenter}
           onGetViewport={handleGetViewport}
@@ -307,6 +313,7 @@ export default function SimulationWorkspace() {
         isOpen={isEditModalOpen}
         onClose={handleCloseModal}
         onSave={handleSaveNode}
+        onDelete={deleteNode}
       />
 
       {/* Family Name Modal */}

@@ -16,19 +16,14 @@ export default function GroupNode({ data, onEditNode, onNavigateDown }: GroupNod
     }
   };
 
-  const handleDrillDown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onNavigateDown) {
-      onNavigateDown(data.id);
-    }
-  };
-
   return (
-    <div className="group-node bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-lg p-8 min-w-[400px] shadow-2xl transform scale-[2.5]">
+    <div 
+      className="group-node bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-lg p-8 min-w-[400px] shadow-2xl transform scale-[2.5] cursor-pointer hover:bg-gradient-to-br hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-700 rounded flex items-center justify-center">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
@@ -81,16 +76,13 @@ export default function GroupNode({ data, onEditNode, onNavigateDown }: GroupNod
         </div>
       )}
 
-      {/* Drill Down Button */}
-      <button
-        onClick={handleDrillDown}
-        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold rounded transition-colors flex items-center justify-center space-x-3"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      {/* Connection Info */}
+      <div className="w-full py-4 bg-gray-700 text-gray-300 text-lg font-medium rounded flex items-center justify-center">
+        <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
-        <span>Drill Down</span>
-      </button>
+        <span>Connected Groups</span>
+      </div>
     </div>
   );
 }

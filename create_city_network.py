@@ -218,7 +218,7 @@ def create_city_network():
         (offices, "office")
     ]
     
-    # Generate nodes with proper GridForge format
+    # Generate nodes with proper EnergyLens format
     for node_list, category in all_node_types:
         for node_data in node_list:
             node_id = generate_id()
@@ -397,7 +397,7 @@ def create_city_network():
             "name": "MegaCity Energy Network",
             "description": "Comprehensive city energy infrastructure simulation",
             "createdAt": datetime.now().isoformat() + "Z",
-            "author": "GridForge Generator"
+            "author": "EnergyLens Generator"
         },
         "simulation": {
             "nodes": nodes,

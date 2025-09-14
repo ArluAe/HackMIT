@@ -1,4 +1,4 @@
-# 🏙️ **GridForge City Networks - Well-Spaced Layouts**
+# 🏙️ **EnergyLens City Networks - Well-Spaced Layouts**
 
 ## 📊 **Generated Networks**
 
@@ -122,7 +122,7 @@
 ## 🎮 **Usage Instructions**
 
 ### **Import Process:**
-1. **Open GridForge** simulation workspace
+1. **Open EnergyLens** simulation workspace
 2. **Click "Import Graph"** button
 3. **Select** either `compact_city_50_nodes.json` or `large_city_500_nodes.json`
 4. **View** the perfectly spaced city layout

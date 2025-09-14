@@ -539,7 +539,7 @@ def generate_large_city():
             "name": "Large City Energy Network",
             "description": "Well-spaced 500-node city energy infrastructure simulation",
             "createdAt": datetime.now().isoformat() + "Z",
-            "author": "GridForge Generator"
+            "author": "EnergyLens Generator"
         },
         "simulation": {
             "nodes": nodes,

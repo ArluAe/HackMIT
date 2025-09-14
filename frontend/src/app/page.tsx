@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Logo from '@/components/Logo';
 import { loadCityModels, getCityModels, cityModelMetadata } from '@/services/cityModels';
 import { GraphExportData } from '@/types/simulation';
 
@@ -63,10 +64,8 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">G</span>
-              </div>
-              <h1 className="text-2xl font-bold text-white">GridForge</h1>
+              <Logo size="md" />
+              <h1 className="text-2xl font-bold text-white">EnergyLens</h1>
             </div>
             <div className="flex items-center space-x-4">
               <button

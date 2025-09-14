@@ -31,6 +31,7 @@ interface ReactFlowCanvasProps {
   onNodeMouseMove: (x: number, y: number) => void;
   onNodeMouseUp: () => void;
   onConnectionFinish: (fromId: string, toId: string) => void;
+  onGroupConnectionFinish?: (fromFamilyId: string, toFamilyId: string) => void;
   onConnectionDelete: (connectionIds: string[]) => void;
   onGetViewportCenter?: (getCenter: () => { x: number; y: number }) => void;
   onGetViewport?: (getViewport: () => { x: number; y: number; zoom: number }) => void;
@@ -62,6 +63,7 @@ export default function ReactFlowCanvas({
   onNodeMouseMove,
   onNodeMouseUp,
   onConnectionFinish,
+  onGroupConnectionFinish,
   onConnectionDelete,
   onGetViewportCenter,
   onGetViewport,
@@ -102,7 +104,6 @@ export default function ReactFlowCanvas({
               data: { 
                 ...node, 
                 onEditNode,
-                onDeleteNode,
                 onToggleSelection: isSelectionMode ? onToggleNodeSelection : undefined,
                 isSelected: selectedNodes.includes(node.id),
                 isSelectionMode
@@ -208,9 +209,50 @@ export default function ReactFlowCanvas({
   }, [nodes, selectedNode, onEditNode, currentLayer, selectedNodes, isSelectionMode, onToggleNodeSelection, onNavigateDown, savedNodePositions]
   );
 
+  // Get hierarchical connections based on current layer
+  const getHierarchicalConnections = useCallback(() => {
+    if (currentLayer === 0) {
+      // Layer 0: Show individual connections
+      return connections;
+    } else {
+      // Higher layers: Show group-level connections
+      const groupConnections: SimulationConnection[] = [];
+      const processedPairs = new Set<string>();
+      
+      // Find all unique family pairs that have connections between their children
+      connections.forEach(conn => {
+        const fromNode = nodes.find(n => n.id === conn.from);
+        const toNode = nodes.find(n => n.id === conn.to);
+        
+        if (fromNode && toNode && fromNode.familyId && toNode.familyId && fromNode.familyId !== toNode.familyId) {
+          const pairKey = [fromNode.familyId, toNode.familyId].sort().join('-');
+          
+          if (!processedPairs.has(pairKey)) {
+            processedPairs.add(pairKey);
+            
+            // Create a group-level connection
+            groupConnections.push({
+              id: `group_conn_${fromNode.familyId}_${toNode.familyId}`,
+              from: fromNode.familyId,
+              to: toNode.familyId,
+              power: conn.power,
+              status: conn.status,
+              resistance: conn.resistance,
+              maxPower: conn.maxPower
+            });
+          }
+        }
+      });
+      
+      return groupConnections;
+    }
+  }, [currentLayer, connections, nodes]);
+
   // Convert simulation connections to React Flow edges
-  const reactFlowEdges: Edge[] = useMemo(() => 
-    connections.map(conn => ({
+  const reactFlowEdges: Edge[] = useMemo(() => {
+    const hierarchicalConnections = getHierarchicalConnections();
+    
+    return hierarchicalConnections.map(conn => ({
       id: conn.id,
       source: conn.from,
       target: conn.to,
@@ -238,8 +280,8 @@ export default function ReactFlowCanvas({
         strokeWidth: selectedEdges.includes(conn.id) ? 4 : 3,  // Thicker lines
         opacity: selectedEdges.includes(conn.id) ? 1 : 0.9,    // More opaque
       },
-    })), [connections, selectedEdges]
-  );
+    }));
+  }, [getHierarchicalConnections, selectedEdges]);
 
   const [reactFlowNodesState, setNodes, onNodesChange] = useNodesState(reactFlowNodes);
   const [reactFlowEdgesState, setEdges, onEdgesChange] = useEdgesState(reactFlowEdges);
@@ -324,13 +366,21 @@ export default function ReactFlowCanvas({
 
   const onConnect = useCallback((params: Connection) => {
     if (params.source && params.target) {
-      onConnectionFinish(params.source, params.target);
+      if (currentLayer === 0) {
+        // Individual layer - use regular connection
+        onConnectionFinish(params.source, params.target);
+      } else {
+        // Group layer - use group connection
+        if (onGroupConnectionFinish) {
+          onGroupConnectionFinish(params.source, params.target);
+        }
+      }
     }
-  }, [onConnectionFinish]);
+  }, [onConnectionFinish, onGroupConnectionFinish, currentLayer]);
 
   const onNodeClickHandler = useCallback((event: React.MouseEvent, node: Node) => {
-    if (node.type === 'groupNode') {
-      // If it's a group node, drill down to its children
+    if (node.type === 'groupNode' || node.type === 'groupBubble') {
+      // If it's a group node or bubble, drill down to its children
       if (onNavigateDown) {
         // Reset transition state for manual navigation
         setIsTransitioning(false);

@@ -108,6 +108,30 @@ export const useSimulation = () => {
     }
   };
 
+  // Add hierarchical connection between groups
+  const addGroupConnection = (fromFamilyId: string, toFamilyId: string) => {
+    // Check if group connection already exists
+    const existingConnection = connections.find(
+      conn => (conn.from === fromFamilyId && conn.to === toFamilyId) || (conn.from === toFamilyId && conn.to === fromFamilyId)
+    );
+    
+    if (!existingConnection) {
+      // Get family names for the modal
+      const fromFamily = nodes.find(n => n.familyId === fromFamilyId);
+      const toFamily = nodes.find(n => n.familyId === toFamilyId);
+      
+      if (fromFamily && toFamily) {
+        setPendingConnection({
+          from: fromFamilyId,
+          to: toFamilyId,
+          fromName: fromFamily.familyName || `Family ${fromFamilyId}`,
+          toName: toFamily.familyName || `Family ${toFamilyId}`
+        });
+        setIsConnectionCreationModalOpen(true);
+      }
+    }
+  };
+
   const createConnectionFromModal = (connectionData: Partial<Connection>) => {
     if (!pendingConnection) return;
 
@@ -252,7 +276,7 @@ export const useSimulation = () => {
   };
 
   // Import/Export functions
-  const exportGraph = (simulationName: string = 'GridForge Simulation', viewport?: { x: number; y: number; zoom: number }) => {
+  const exportGraph = (simulationName: string = 'EnergyLens Simulation', viewport?: { x: number; y: number; zoom: number }) => {
     const families = getFamilies();
     const familyGroups: FamilyGroup[] = families
       .filter(family => family.id) // Filter out families without IDs
@@ -286,7 +310,7 @@ export const useSimulation = () => {
       version: '1.0',
       metadata: {
         name: simulationName,
-        description: 'Exported from GridForge',
+        description: 'Exported from EnergyLens',
         createdAt: new Date().toISOString(),
         author: 'User'
       },
@@ -321,7 +345,7 @@ export const useSimulation = () => {
     try {
       // Validate version compatibility
       if (data.version !== '1.0') {
-        return { success: false, error: 'Incompatible file version. Please use a GridForge v1.0 export file.' };
+        return { success: false, error: 'Incompatible file version. Please use an EnergyLens v1.0 export file.' };
       }
 
       // Validate data structure
@@ -361,7 +385,7 @@ export const useSimulation = () => {
       return { success: true, viewport: data.viewport };
     } catch (error) {
       console.error('Load failed:', error);
-      return { success: false, error: 'Failed to parse data. Please ensure it\'s valid GridForge data.' };
+      return { success: false, error: 'Failed to parse data. Please ensure it\'s valid EnergyLens data.' };
     }
   };
 
@@ -374,7 +398,7 @@ export const useSimulation = () => {
           
           // Validate version compatibility
           if (data.version !== '1.0') {
-            resolve({ success: false, error: 'Incompatible file version. Please use a GridForge v1.0 export file.' });
+            resolve({ success: false, error: 'Incompatible file version. Please use an EnergyLens v1.0 export file.' });
             return;
           }
 
@@ -416,7 +440,7 @@ export const useSimulation = () => {
           resolve({ success: true, viewport: data.viewport });
         } catch (error) {
           console.error('Import failed:', error);
-          resolve({ success: false, error: 'Failed to parse file. Please ensure it\'s a valid GridForge export file.' });
+          resolve({ success: false, error: 'Failed to parse file. Please ensure it\'s a valid EnergyLens export file.' });
         }
       };
       reader.onerror = () => {
@@ -468,6 +492,7 @@ export const useSimulation = () => {
     deleteNode,
     updateNodePosition,
     addConnection,
+    addGroupConnection,
     deleteConnection,
     startConnection,
     finishConnection,

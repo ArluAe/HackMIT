@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Logo from '@/components/Logo';
 
 export default function NewSimulation() {
   const router = useRouter();
@@ -57,10 +58,8 @@ export default function NewSimulation() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">G</span>
-              </div>
-              <h1 className="text-2xl font-bold text-white">GridForge</h1>
+              <Logo size="md" />
+              <h1 className="text-2xl font-bold text-white">EnergyLens</h1>
             </div>
             <div className="flex items-center space-x-4">
               <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">

@@ -450,7 +450,7 @@ export default function SimulationAnalysisPage() {
     
     for (let i = 0; i <= 4; i++) {
       const y = padding + (chartHeight / 4) * i;
-      ctx.beginPath();
+    ctx.beginPath();
       ctx.moveTo(padding, y);
       ctx.lineTo(width - padding, y);
       ctx.stroke();
@@ -687,10 +687,10 @@ export default function SimulationAnalysisPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-            </div>
-          </div>
+        </div>
+      </div>
 
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Total Consumption</p>
@@ -702,25 +702,25 @@ export default function SimulationAnalysisPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
+              </div>
             </div>
-          </div>
 
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Grid Frequency</p>
                 <p className="text-2xl font-bold text-blue-400">{currentData?.gridFrequency.toFixed(2)} Hz</p>
                 <p className="text-slate-400 text-xs">Stability: {(metrics.frequencyStability * 100).toFixed(1)}%</p>
-              </div>
+                  </div>
               <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                 </svg>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Average Cost</p>
@@ -733,15 +733,15 @@ export default function SimulationAnalysisPage() {
                 </svg>
               </div>
             </div>
-          </div>
-        </div>
+                </div>
+              </div>
 
         {/* Main Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Grid Frequency Chart */}
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Grid Frequency</h3>
-            <canvas
+              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                <h3 className="text-lg font-semibold text-white mb-4">Grid Frequency</h3>
+                <canvas
               ref={gridFrequencyCanvasRef}
               width={CHART_WIDTH}
               height={CHART_HEIGHT}
@@ -779,70 +779,70 @@ export default function SimulationAnalysisPage() {
               width={CHART_WIDTH}
               height={CHART_HEIGHT}
               className="w-full h-full"
-            />
-          </div>
-        </div>
+                />
+              </div>
+            </div>
 
         {/* Additional Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
             <h3 className="text-lg font-semibold text-white mb-4">Environmental Impact</h3>
             <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-300">Carbon Intensity</span>
-                <span className="text-orange-400 font-mono font-bold">{metrics.carbonIntensity.toFixed(1)} g CO₂/kWh</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300">Carbon Intensity</span>
+                    <span className="text-orange-400 font-mono font-bold">{metrics.carbonIntensity.toFixed(1)} g CO₂/kWh</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300">Renewable Share</span>
+                    <span className="text-green-400 font-mono font-bold">{metrics.renewableShare.toFixed(1)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300">Environmental Score</span>
+                    <span className="text-emerald-400 font-mono font-bold">{metrics.environmentalImpact.toFixed(1)}%</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-300">Renewable Share</span>
-                <span className="text-green-400 font-mono font-bold">{metrics.renewableShare.toFixed(1)}%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-300">Environmental Score</span>
-                <span className="text-emerald-400 font-mono font-bold">{metrics.environmentalImpact.toFixed(1)}%</span>
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
             <h3 className="text-lg font-semibold text-white mb-4">Grid Health</h3>
             <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-300">Grid Reliability</span>
-                <span className="text-green-400 font-mono font-bold">{metrics.gridReliability.toFixed(1)}%</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300">Grid Reliability</span>
+                    <span className="text-green-400 font-mono font-bold">{metrics.gridReliability.toFixed(1)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300">Power Quality</span>
+                    <span className="text-blue-400 font-mono font-bold">{metrics.powerQuality.toFixed(1)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300">Voltage Stability</span>
+                    <span className="text-purple-400 font-mono font-bold">{metrics.voltageStability.toFixed(1)}%</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-300">Power Quality</span>
-                <span className="text-blue-400 font-mono font-bold">{metrics.powerQuality.toFixed(1)}%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-300">Voltage Stability</span>
-                <span className="text-purple-400 font-mono font-bold">{metrics.voltageStability.toFixed(1)}%</span>
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
             <h3 className="text-lg font-semibold text-white mb-4">Market Conditions</h3>
             <div className="space-y-3">
-              {currentData && (
-                <>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Electricity Price</span>
-                    <span className="text-green-400 font-mono font-bold">${currentData.marketData.electricityPrice.toFixed(2)}/MWh</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Carbon Price</span>
-                    <span className="text-orange-400 font-mono font-bold">${currentData.marketData.carbonPrice.toFixed(2)}/ton</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Demand Response</span>
-                    <span className="text-blue-400 font-mono font-bold">{currentData.marketData.demandResponse.toFixed(1)}%</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+                  {currentData && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-300">Electricity Price</span>
+                        <span className="text-green-400 font-mono font-bold">${currentData.marketData.electricityPrice.toFixed(2)}/MWh</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-300">Carbon Price</span>
+                        <span className="text-orange-400 font-mono font-bold">${currentData.marketData.carbonPrice.toFixed(2)}/ton</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-300">Demand Response</span>
+                        <span className="text-blue-400 font-mono font-bold">{currentData.marketData.demandResponse.toFixed(1)}%</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+              </div>
       </div>
     </div>
   );

@@ -14,8 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GridForge - Smart Energy Management",
+  title: "EnergyLens - Smart Energy Management",
   description: "AI-powered energy simulation platform for optimizing electricity costs and sustainability",
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

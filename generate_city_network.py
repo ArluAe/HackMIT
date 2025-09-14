@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate a comprehensive, well-organized city energy network in GridForge format
+Generate a comprehensive, well-organized city energy network in EnergyLens format
 with proper hierarchical families and strategic positioning
 """
 import json
@@ -504,7 +504,7 @@ def generate_city_network():
             "name": "MegaCity Energy Network",
             "description": "Comprehensive, well-organized city energy infrastructure simulation",
             "createdAt": datetime.now().isoformat() + "Z",
-            "author": "GridForge Generator"
+            "author": "EnergyLens Generator"
         },
         "simulation": {
             "nodes": nodes,

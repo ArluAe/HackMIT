@@ -6,7 +6,7 @@ export const createTestExportData = (): GraphExportData => {
     version: '1.0',
     metadata: {
       name: 'Test Simulation',
-      description: 'Test export for GridForge',
+      description: 'Test export for EnergyLens',
       createdAt: new Date().toISOString(),
       author: 'Test User'
     },
@@ -69,7 +69,7 @@ export const downloadTestFile = () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'test-gridforge-export.json';
+  a.download = 'test-energylens-export.json';
   a.click();
   URL.revokeObjectURL(url);
 };

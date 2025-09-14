@@ -4,7 +4,7 @@
     "name": "Compact City Energy Network",
     "description": "Well-spaced 50-node city energy infrastructure simulation",
     "createdAt": "2025-09-14T10:40:33.281164Z",
-    "author": "GridForge Generator"
+    "author": "EnergyLens Generator"
   },
   "simulation": {
     "nodes": [

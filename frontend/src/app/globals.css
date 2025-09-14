@@ -190,3 +190,8 @@ body {
 .group-bubble:hover {
   z-index: 20;
 }
+
+/* Hide React Flow attribution */
+.react-flow__attribution {
+  display: none !important;
+}
