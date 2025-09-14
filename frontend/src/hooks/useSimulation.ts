@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Node, Connection } from '@/types/simulation';
+import { Node, Connection, GraphExportData, FamilyGroup, LayerInfo } from '@/types/simulation';
+import { applySmartLayout, detectBestLayout, LayoutOptions } from '@/utils/graphLayout';
 
 export const useSimulation = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -173,6 +174,155 @@ export const useSimulation = () => {
     setSelectedNodes([]);
   };
 
+  // Import/Export functions
+  const exportGraph = (simulationName: string = 'GridForge Simulation', viewport?: { x: number; y: number; zoom: number }) => {
+    const families = getFamilies();
+    const familyGroups: FamilyGroup[] = families
+      .filter(family => family.id) // Filter out families without IDs
+      .map(family => {
+        const familyNodes = family.nodes;
+        const centerX = familyNodes.reduce((sum, n) => sum + n.x, 0) / familyNodes.length;
+        const centerY = familyNodes.reduce((sum, n) => sum + n.y, 0) / familyNodes.length;
+        
+        return {
+          id: family.id!,
+          name: familyNodes[0]?.familyName || `Family ${familyNodes.length}`,
+          nodeIds: familyNodes.map(n => n.id),
+          centerPosition: { x: centerX, y: centerY },
+          stats: {
+            totalPower: familyNodes.reduce((sum, n) => sum + n.power, 0),
+            nodeCount: familyNodes.length,
+            childTypes: familyNodes.reduce((acc, n) => {
+              acc[n.type] = (acc[n.type] || 0) + 1;
+              return acc;
+            }, {} as Record<string, number>)
+          }
+        };
+      });
+
+    const layers: LayerInfo[] = [
+      { layer: 0, name: 'Individual Nodes', description: 'Base layer with individual components', nodeCount: nodes.filter(n => n.layer === 0).length },
+      { layer: 1, name: 'Family Groups', description: 'Grouped components by family', nodeCount: families.length }
+    ];
+
+    const exportData: GraphExportData = {
+      version: '1.0',
+      metadata: {
+        name: simulationName,
+        description: 'Exported from GridForge',
+        createdAt: new Date().toISOString(),
+        author: 'User'
+      },
+      simulation: {
+        nodes,
+        connections,
+        families: familyGroups,
+        layers
+      },
+      viewport: viewport || {
+        x: 0,
+        y: 0,
+        zoom: 1
+      },
+      settings: {
+        simulationRunning: isSimulationRunning,
+        currentLayer
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${simulationName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importGraph = (file: File): Promise<{ success: boolean; error?: string; viewport?: { x: number; y: number; zoom: number } }> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data: GraphExportData = JSON.parse(e.target?.result as string);
+          
+          // Validate version compatibility
+          if (data.version !== '1.0') {
+            resolve({ success: false, error: 'Incompatible file version. Please use a GridForge v1.0 export file.' });
+            return;
+          }
+
+          // Validate data structure
+          if (!data.simulation || !data.simulation.nodes || !data.simulation.connections) {
+            resolve({ success: false, error: 'Invalid file format. Missing required simulation data.' });
+            return;
+          }
+
+          // Clear current simulation
+          setNodes([]);
+          setConnections([]);
+          setSelectedNodes([]);
+          setSelectedNode(null);
+          setCurrentLayer(0);
+          setLayerHistory([0]);
+
+          // Import nodes and connections
+          setConnections(data.simulation.connections);
+
+          // Apply smart layout to the imported nodes
+          const layoutAlgorithm = detectBestLayout(data.simulation.nodes, data.simulation.connections);
+          console.log('Detected layout algorithm:', layoutAlgorithm);
+          console.log('Original nodes:', data.simulation.nodes.map(n => ({ id: n.id, x: n.x, y: n.y })));
+          
+          const layoutOptions: LayoutOptions = {
+            width: 1200, // Canvas width
+            height: 800, // Canvas height
+            padding: 100,
+            algorithm: layoutAlgorithm,
+            iterations: 300
+          };
+
+          const positionedNodes = applySmartLayout(
+            data.simulation.nodes,
+            data.simulation.connections,
+            layoutOptions
+          );
+
+          console.log('Positioned nodes:', positionedNodes.map(n => ({ id: n.id, x: n.x, y: n.y })));
+          setNodes(positionedNodes);
+
+          // Restore settings
+          setIsSimulationRunning(data.settings.simulationRunning);
+          setCurrentLayer(data.settings.currentLayer);
+
+          resolve({ success: true, viewport: data.viewport });
+        } catch (error) {
+          console.error('Import failed:', error);
+          resolve({ success: false, error: 'Failed to parse file. Please ensure it\'s a valid GridForge export file.' });
+        }
+      };
+      reader.onerror = () => {
+        resolve({ success: false, error: 'Failed to read file.' });
+      };
+      reader.readAsText(file);
+    });
+  };
+
+  // Apply smart layout to current simulation
+  const applyLayout = (algorithm?: LayoutOptions['algorithm']) => {
+    const layoutAlgorithm = algorithm || detectBestLayout(nodes, connections);
+    const layoutOptions: LayoutOptions = {
+      width: 1200,
+      height: 800,
+      padding: 100,
+      algorithm: layoutAlgorithm,
+      iterations: 300
+    };
+
+    const positionedNodes = applySmartLayout(nodes, connections, layoutOptions);
+    setNodes(positionedNodes);
+  };
+
   return {
     // State
     nodes,
@@ -214,6 +364,11 @@ export const useSimulation = () => {
     navigateDown,
     toggleNodeSelection,
     clearSelection,
-    setIsSelectionMode
+    setIsSelectionMode,
+    
+    // Import/Export actions
+    exportGraph,
+    importGraph,
+    applyLayout
   };
 };

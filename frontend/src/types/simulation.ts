@@ -39,3 +39,47 @@ export interface SimulationState {
   isConnecting: boolean;
   connectionStart: string | null;
 }
+
+export interface GraphExportData {
+  version: string;
+  metadata: {
+    name: string;
+    description: string;
+    createdAt: string;
+    author: string;
+  };
+  simulation: {
+    nodes: Node[];
+    connections: Connection[];
+    families: FamilyGroup[];
+    layers: LayerInfo[];
+  };
+  viewport: {
+    x: number;
+    y: number;
+    zoom: number;
+  };
+  settings: {
+    simulationRunning: boolean;
+    currentLayer: number;
+  };
+}
+
+export interface FamilyGroup {
+  id: string;
+  name: string;
+  nodeIds: string[];
+  centerPosition: { x: number; y: number };
+  stats: {
+    totalPower: number;
+    nodeCount: number;
+    childTypes: Record<string, number>;
+  };
+}
+
+export interface LayerInfo {
+  layer: number;
+  name: string;
+  description: string;
+  nodeCount: number;
+}

@@ -8,9 +8,12 @@ import ReactFlowCanvas from '@/components/simulation/ReactFlowCanvas';
 import NodeEditModal from '@/components/simulation/nodes/NodeEditModal';
 import FamilyNameModal from '@/components/simulation/FamilyNameModal';
 import { Node } from '@/types/simulation';
+import '@/utils/debugLayout'; // Import debug utilities
 
 export default function SimulationWorkspace() {
   const [getViewportCenter, setGetViewportCenter] = useState<(() => { x: number; y: number }) | null>(null);
+  const [getViewport, setGetViewport] = useState<(() => { x: number; y: number; zoom: number }) | null>(null);
+  const [importedViewport, setImportedViewport] = useState<{ x: number; y: number; zoom: number } | undefined>(undefined);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
@@ -42,7 +45,11 @@ export default function SimulationWorkspace() {
     navigateDown,
     toggleNodeSelection,
     clearSelection,
-    setIsSelectionMode
+    setIsSelectionMode,
+    // Import/Export functions
+    exportGraph,
+    importGraph,
+    applyLayout
   } = useSimulation();
 
   const selectedNodeData = selectedNode ? nodes.find(n => n.id === selectedNode) || null : null;
@@ -68,6 +75,10 @@ export default function SimulationWorkspace() {
 
   const handleGetViewportCenter = useCallback((getCenter: () => { x: number; y: number }) => {
     setGetViewportCenter(() => getCenter);
+  }, []);
+
+  const handleGetViewport = useCallback((getViewportFn: () => { x: number; y: number; zoom: number }) => {
+    setGetViewport(() => getViewportFn);
   }, []);
 
   const handleAddNode = useCallback((type: any) => {
@@ -143,6 +154,40 @@ export default function SimulationWorkspace() {
     navigateUp();
   }, [navigateUp]);
 
+  // Import/Export handlers
+  const handleExportGraph = useCallback(() => {
+    const simulationName = prompt('Enter simulation name:', 'GridForge Simulation') || 'GridForge Simulation';
+    
+    // Get current viewport if available
+    const currentViewport = getViewport ? getViewport() : { x: 0, y: 0, zoom: 1 };
+    
+    // Export with current viewport
+    exportGraph(simulationName, currentViewport);
+  }, [exportGraph, getViewport]);
+
+  const handleImportGraph = useCallback(async (file: File) => {
+    try {
+      const result = await importGraph(file);
+      if (result.success) {
+        // Set the imported viewport for ReactFlowCanvas to restore
+        if (result.viewport) {
+          setImportedViewport(result.viewport);
+          // Clear it after a delay to prevent re-triggering
+          setTimeout(() => setImportedViewport(undefined), 1000);
+        }
+        alert('Graph imported successfully!');
+      } else {
+        alert(`Import failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      alert('Failed to import graph. Please try again.');
+    }
+  }, [importGraph]);
+
+  const handleApplyLayout = useCallback(() => {
+    applyLayout();
+  }, [applyLayout]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -154,9 +199,12 @@ export default function SimulationWorkspace() {
         isSelectionMode={isSelectionMode}
         onToggleSelectionMode={handleToggleSelectionMode}
         onCreateGroup={handleCreateGroup}
-          onNavigateUp={handleNavigateUp}
-          onNavigateDown={handleNavigateDown}
-          onClearSelection={clearSelection}
+        onNavigateUp={handleNavigateUp}
+        onNavigateDown={handleNavigateDown}
+        onClearSelection={clearSelection}
+        onExportGraph={handleExportGraph}
+        onImportGraph={handleImportGraph}
+        onApplyLayout={handleApplyLayout}
       />
 
       <main className="flex h-[calc(100vh-3rem)]">
@@ -177,6 +225,7 @@ export default function SimulationWorkspace() {
           onConnectionFinish={handleConnectionFinish}
           onConnectionDelete={handleConnectionDelete}
           onGetViewportCenter={handleGetViewportCenter}
+          onGetViewport={handleGetViewport}
           onEditNode={handleEditNode}
           currentLayer={currentLayer}
           selectedNodes={selectedNodes}
@@ -184,6 +233,7 @@ export default function SimulationWorkspace() {
           onToggleNodeSelection={toggleNodeSelection}
           onNavigateDown={handleNavigateDown}
           onNavigateToLayer={navigateToLayer}
+          importedViewport={importedViewport}
         />
       </main>
 

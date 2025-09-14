@@ -33,6 +33,7 @@ interface ReactFlowCanvasProps {
   onConnectionFinish: (fromId: string, toId: string) => void;
   onConnectionDelete: (connectionIds: string[]) => void;
   onGetViewportCenter?: (getCenter: () => { x: number; y: number }) => void;
+  onGetViewport?: (getViewport: () => { x: number; y: number; zoom: number }) => void;
   onEditNode: (node: SimulationNode) => void;
   // Hierarchical props
   currentLayer: number;
@@ -41,6 +42,8 @@ interface ReactFlowCanvasProps {
   onToggleNodeSelection: (nodeId: string) => void;
   onNavigateDown: (groupNodeId: string) => void;
   onNavigateToLayer: (layer: number) => void;
+  // Import/Export props
+  importedViewport?: { x: number; y: number; zoom: number };
 }
 
 const nodeTypes = {
@@ -59,13 +62,15 @@ export default function ReactFlowCanvas({
   onConnectionFinish,
   onConnectionDelete,
   onGetViewportCenter,
+  onGetViewport,
   onEditNode,
   currentLayer,
   selectedNodes,
   isSelectionMode,
   onToggleNodeSelection,
   onNavigateDown,
-  onNavigateToLayer
+  onNavigateToLayer,
+  importedViewport
 }: ReactFlowCanvasProps) {
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
   const [selectedEdges, setSelectedEdges] = useState<string[]>([]);
@@ -315,19 +320,8 @@ export default function ReactFlowCanvas({
         setLastSwitchTime(Date.now());
         
         onNavigateDown(node.id);
-        // After drilling down, center the view on the family's nodes
-        setTimeout(() => {
-          if (reactFlowInstance.current) {
-            const familyNodes = nodes.filter(n => n.familyId === node.id);
-            if (familyNodes.length > 0) {
-              reactFlowInstance.current.fitView({
-                nodes: familyNodes.map(n => ({ id: n.id, x: n.x, y: n.y })),
-                duration: 800,
-                padding: 0.1,
-              });
-            }
-          }
-        }, 100);
+        // REMOVED: No automatic centering when clicking group nodes
+        // Users can manually navigate and zoom as needed
       }
     } else {
       // Regular node click
@@ -365,6 +359,14 @@ export default function ReactFlowCanvas({
     });
   }, []);
 
+  // Function to get the current viewport (position and zoom)
+  const getViewport = useCallback(() => {
+    if (!reactFlowInstance.current) {
+      return { x: 0, y: 0, zoom: 1 }; // Fallback viewport
+    }
+    return reactFlowInstance.current.getViewport();
+  }, []);
+
   // Initialize React Flow instance
   const onInit = useCallback((instance: ReactFlowInstance) => {
     reactFlowInstance.current = instance;
@@ -376,6 +378,25 @@ export default function ReactFlowCanvas({
       onGetViewportCenter(getViewportCenter);
     }
   }, [onGetViewportCenter, getViewportCenter]);
+
+  // Expose the viewport function to parent
+  useEffect(() => {
+    if (onGetViewport) {
+      onGetViewport(getViewport);
+    }
+  }, [onGetViewport, getViewport]);
+
+  // Restore imported viewport
+  useEffect(() => {
+    if (importedViewport && reactFlowInstance.current) {
+      // Restore the imported viewport after a short delay to ensure nodes are rendered
+      setTimeout(() => {
+        if (reactFlowInstance.current) {
+          reactFlowInstance.current.setViewport(importedViewport, { duration: 800 });
+        }
+      }, 200);
+    }
+  }, [importedViewport]);
 
   // Zoom-based layer switching
   const [currentZoom, setCurrentZoom] = useState(1);
@@ -436,7 +457,7 @@ export default function ReactFlowCanvas({
     }
   }, [currentLayer, isZooming, isTransitioning, lastSwitchTime, onNavigateToLayer, reactFlowInstance]);
 
-  // Sync zoom level with layer changes
+  // Sync zoom level with layer changes - REMOVED AUTOMATIC CENTERING
   useEffect(() => {
     if (reactFlowInstance.current && !isZooming) {
       // Reset transition state when layer changes manually
@@ -471,71 +492,8 @@ export default function ReactFlowCanvas({
         savedPositionsForLayer.current = null;
       }
       
-      // Adjust zoom level based on layer for manual navigation
-      const targetZoom = currentLayer === 0 ? 1 : 0.2;
-      
-      if (currentLayer > 0) {
-        // When going to group view, center on the group nodes
-        // Get family groups from our data
-        const families = nodes
-          .filter(node => node.familyId && node.layer === 0)
-          .reduce((uniqueFamilies, node) => {
-            if (!uniqueFamilies.find(f => f.id === node.familyId)) {
-              const familyNodes = nodes.filter(n => n.familyId === node.familyId && n.layer === 0);
-              const centerX = familyNodes.reduce((sum, n) => {
-                const savedPos = savedNodePositions[n.id];
-                return sum + (savedPos ? savedPos.x : n.x);
-              }, 0) / familyNodes.length;
-              const centerY = familyNodes.reduce((sum, n) => {
-                const savedPos = savedNodePositions[n.id];
-                return sum + (savedPos ? savedPos.y : n.y);
-              }, 0) / familyNodes.length;
-              
-              uniqueFamilies.push({
-                id: node.familyId!,
-                x: centerX,
-                y: centerY
-              });
-            }
-            return uniqueFamilies;
-          }, [] as { id: string; x: number; y: number }[]);
-
-        if (families.length > 0) {
-          // Use fitView to center on family groups with more padding
-          setTimeout(() => {
-            if (reactFlowInstance.current) {
-              reactFlowInstance.current.fitView({
-                nodes: families,
-                duration: 800,
-                padding: 0.3, // Increased padding to show all groups
-                minZoom: 0.1, // Minimum zoom level
-                maxZoom: 0.3, // Maximum zoom level
-              });
-            }
-          }, 100);
-        } else {
-          // Fallback: center the viewport
-          setTimeout(() => {
-            if (reactFlowInstance.current) {
-              const viewportWidth = window.innerWidth;
-              const viewportHeight = window.innerHeight;
-              reactFlowInstance.current.setViewport({
-                x: -viewportWidth / 2,
-                y: -viewportHeight / 2,
-                zoom: targetZoom
-              }, { duration: 800 });
-            }
-          }, 100);
-        }
-      } else {
-        // When going to individual view, maintain current position but adjust zoom
-        const currentViewport = reactFlowInstance.current.getViewport();
-        reactFlowInstance.current.setViewport({
-          x: currentViewport.x,
-          y: currentViewport.y,
-          zoom: targetZoom
-        }, { duration: 800 });
-      }
+      // REMOVED: No automatic centering or zoom changes when touching nodes
+      // Users can manually navigate using the layer buttons if needed
     }
   }, [currentLayer, isZooming, nodes, savedNodePositions]);
 
