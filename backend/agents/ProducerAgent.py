@@ -7,6 +7,8 @@ class ProducerAgent(BaseAgent):
         super().__init__(agent_id, cost_function)
         self.max_output = max_output
         self.startup_rate = startup_rate
+        self.production_cost = 30.0  # Base production cost $/MWh
+        self.revenue_history = []
         self.policy = Policy(agent_type=2)  # Producer agent type
 
     def act(self, state):
@@ -38,13 +40,13 @@ class ProducerAgent(BaseAgent):
         """Convert state to normalized observation vector."""
         global_features = [
             state.get("frequency", 60) / 60.0,
-            state.get("temperature", 0),
-            state.get("avg_cost", 1.0) / 10.0,
-            state.get("time_of_day", 12) / 24.0
+            state.get("avg_cost", 50.0) / 100.0,  # Normalized price
+            state.get("time_of_day", 0.5),  # Already normalized
+            (state.get("frequency", 60) - 60) / 10.0  # Frequency deviation
         ]
 
         agent_features = [
-            self.delta_e / self.max_output,
+            self.delta_e / self.max_output if self.max_output > 0 else 0,
             self.episode_reward / 10.0
         ]
 
@@ -52,44 +54,94 @@ class ProducerAgent(BaseAgent):
 
     def compute_reward(self, state, all_agents):
         """
-        Adversarial reward: maximize profit + market share - stability penalty
+        Producer reward: Maintain frequency stability AND sell at high prices
 
         Args:
             state: Environment state
-            all_agents: List of all agents for competition
+            all_agents: List of all agents
 
         Returns:
             float: Reward in [-1, 1] range
         """
-        # Profit component
-        price = state.get("avg_cost", 1.0)
-        revenue = self.delta_e * price
-        production_cost = self.cost_function(self.delta_e) if self.delta_e > 0 else 0
-        profit = revenue - production_cost
-
-        # Normalize profit (assuming max possible profit ~50)
-        profit_reward = min(1, max(-1, profit / 50.0))
-
-        # Market share competition
-        producer_agents = [a for a in all_agents if isinstance(a, ProducerAgent)]
-        if len(producer_agents) > 1:
-            total_production = sum(a.delta_e for a in producer_agents)
-            if total_production > 0:
-                my_share = self.delta_e / total_production
-                equal_share = 1.0 / len(producer_agents)
-                market_share_reward = (my_share - equal_share) * 2  # compete for dominance
-            else:
-                market_share_reward = 0
-        else:
-            market_share_reward = 0
-
-        # Grid stability penalty (shared responsibility)
+        current_price = state.get("avg_cost", 50.0)
         frequency = state.get("frequency", 60)
-        stability_penalty = -abs(frequency - 60) / 4.0  # reduced impact vs profit
 
-        # Zero-sum component: reduce others' average reward
-        other_rewards = [a.episode_reward for a in all_agents if a != self]
-        others_penalty = -np.mean(other_rewards) * 0.1 if other_rewards else 0
+        # PRIORITY 1: Frequency stability (critical for grid)
+        freq_deviation = abs(frequency - 60)
+        if freq_deviation < 0.5:  # Excellent stability
+            stability_reward = 1.0
+        elif freq_deviation < 1.0:  # Good stability
+            stability_reward = 0.5
+        elif freq_deviation < 2.0:  # Acceptable
+            stability_reward = 0
+        else:  # Poor stability
+            stability_reward = -1.0 * (freq_deviation / 5.0)
 
-        total_reward = profit_reward + market_share_reward + stability_penalty + others_penalty
+        # PRIORITY 2: Profit from selling at high prices
+        if self.delta_e > 0:
+            revenue = self.delta_e * current_price / 60.0  # MW * $/MWh / 60 = revenue per minute
+            cost = self.delta_e * self.production_cost / 60.0
+            profit = revenue - cost
+            self.revenue_history.append(revenue)
+
+            # Profit margin reward
+            margin = (current_price - self.production_cost) / self.production_cost
+            if margin > 0.5:  # >50% margin
+                profit_reward = 0.8
+            elif margin > 0.2:  # >20% margin
+                profit_reward = 0.4
+            elif margin > 0:  # Positive margin
+                profit_reward = 0.1
+            else:  # Losing money
+                profit_reward = -0.5
+        else:
+            profit_reward = -0.2  # Penalty for not producing
+
+        # Strategic production: Produce more when price is high
+        utilization = self.delta_e / self.max_output if self.max_output > 0 else 0
+        if current_price > 60:  # High price
+            if utilization > 0.7:
+                strategy_reward = 0.5  # Good: high production when price is high
+            else:
+                strategy_reward = -0.2  # Missing opportunity
+        elif current_price < 40:  # Low price
+            if utilization < 0.3:
+                strategy_reward = 0.3  # Good: low production when price is low
+            else:
+                strategy_reward = -0.2  # Overproducing at low prices
+        else:
+            strategy_reward = 0
+
+        # Responsiveness: Adjust production based on frequency
+        response_reward = 0
+        if frequency < 59.5 and self.delta_e > self.max_output * 0.5:  # Low freq, high production
+            response_reward = 0.3
+        elif frequency > 60.5 and self.delta_e < self.max_output * 0.3:  # High freq, low production
+            response_reward = 0.3
+        elif frequency < 59 and self.delta_e < self.max_output * 0.5:  # Not responding to low freq
+            response_reward = -0.5
+        elif frequency > 61 and self.delta_e > self.max_output * 0.7:  # Not responding to high freq
+            response_reward = -0.5
+
+        # Competition with other producers
+        producer_agents = [a for a in all_agents if type(a).__name__ == 'ProducerAgent']
+        competition_reward = 0
+        if len(producer_agents) > 1 and len(self.revenue_history) > 0:
+            my_avg_revenue = np.mean(self.revenue_history[-10:]) if len(self.revenue_history) > 0 else 0
+            for other in producer_agents:
+                if other != self and len(other.revenue_history) > 0:
+                    other_avg = np.mean(other.revenue_history[-10:])
+                    if my_avg_revenue > other_avg:
+                        competition_reward += 0.1
+            competition_reward = max(-0.5, min(0.5, competition_reward))
+
+        # Weighted combination: Stability is critical, profit is important
+        total_reward = (
+            0.4 * stability_reward +     # Critical: maintain frequency
+            0.3 * profit_reward +        # Important: sell at profit
+            0.15 * strategy_reward +     # Strategic production levels
+            0.1 * response_reward +      # Respond to frequency
+            0.05 * competition_reward    # Beat other producers
+        )
+
         return max(-1, min(1, total_reward))

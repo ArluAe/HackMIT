@@ -32,3 +32,17 @@ def get_daily_temperature(timestamp: float, min_temp: float = 15.0, max_temp: fl
     temp += random.gauss(0, 1.0)
 
     return round(temp, 1)
+
+
+def get_daily_temperatures(timestamps: List[float], base_temp: float = 25.0) -> List[float]:
+    """
+    Get temperatures for multiple timestamps.
+
+    Args:
+        timestamps: List of Unix timestamps
+        base_temp: Base temperature to use as reference
+
+    Returns:
+        List of temperatures in Celsius
+    """
+    return [get_daily_temperature(ts, base_temp - 10, base_temp + 5) for ts in timestamps]
