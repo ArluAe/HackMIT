@@ -1,9 +1,9 @@
 import numpy as np
 from agents import ProducerAgent
 class Node:
-    def __init__(self, index, inertia, friction, dt, target_hz):
+    def __init__(self, agent, node_id, inertia, friction, dt, target_hz):
         # Parameters
-        self.index = index
+        self.node_id = node_id  # Use node_id as the primary identifier
         self.inertia = inertia
         self.friction = friction
         self.connections = []
@@ -13,17 +13,20 @@ class Node:
         self.grid_frequency = target_hz
         self.offset = 0
         self.doffset = 0
+        self.d2offset = 0
+        self.power = 0
 
         # Agent
-        self.agent = ProducerAgent(agent_id=index, max_output=100.0)
+        self.agent = agent
 
     def add_connections(self, connections):
         self.connections = connections
 
     def time_step(self, state):
-        d2offset = self.agent.act(state)
-        self.doffset = self.doffset + d2offset * self.dt
-        self.offset = self.offset + self.doffset * self.dt
+        self.power = self.agent.act(state)
+        self.d2offset = self.power - self.friction * self.doffset + self.get_transmission()
+        self.doffset += self.d2offset * self.dt
+        self.offset += self.doffset * self.dt
     
     def get_transmission(self):
         total_transmission = 0
@@ -33,6 +36,14 @@ class Node:
             else:
                 total_transmission -= branch.get_transmission() # Positive if flowing in
         return total_transmission
+    
+    def gen_dict(self):
+        return {
+            "node_id": self.node_id,
+            "inertia": self.inertia,
+            "friction": self.friction,
+            "power": self.power,
+        }
 
 
 
