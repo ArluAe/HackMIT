@@ -247,6 +247,7 @@ export default function SimulationWorkspace() {
           isSelectionMode={isSelectionMode}
           onToggleNodeSelection={toggleNodeSelection}
           onNavigateDown={handleNavigateDown}
+          onNavigateUp={navigateUp}
           onNavigateToLayer={navigateToLayer}
           importedViewport={importedViewport}
         />

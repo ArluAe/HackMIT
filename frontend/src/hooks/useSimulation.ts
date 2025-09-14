@@ -212,8 +212,8 @@ export const useSimulation = () => {
     if (currentLayer === 0) {
       // Go from layer 0 to layer 1 (individuals to groups)
       navigateToLayer(1);
-    } else if (currentLayer > 1) {
-      // Go to higher layer (more abstract)
+    } else if (currentLayer > 0) {
+      // Go to lower layer (more detailed) - layer 1 goes back to layer 0
       navigateToLayer(currentLayer - 1);
     }
   };

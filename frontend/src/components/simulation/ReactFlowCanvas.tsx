@@ -42,6 +42,7 @@ interface ReactFlowCanvasProps {
   isSelectionMode: boolean;
   onToggleNodeSelection: (nodeId: string) => void;
   onNavigateDown: (groupNodeId: string) => void;
+  onNavigateUp: () => void;
   onNavigateToLayer: (layer: number) => void;
   // Import/Export props
   importedViewport?: { x: number; y: number; zoom: number };
@@ -71,6 +72,7 @@ export default function ReactFlowCanvas({
   isSelectionMode,
   onToggleNodeSelection,
   onNavigateDown,
+  onNavigateUp,
   onNavigateToLayer,
   importedViewport
 }: ReactFlowCanvasProps) {
@@ -436,13 +438,10 @@ export default function ReactFlowCanvas({
       const individualNodes = currentNodes.filter(node => node.type === 'energyNode');
       const groupNodes = currentNodes.filter(node => node.type === 'groupNode');
       
-      if (currentLayer === 0 && individualNodes.length > 0) {
+      if (currentLayer === 0) {
         // We're in individual view - check if we should switch to group view
-        const nodeSize = 60; // Base size of individual nodes in pixels
-        const visualNodeSize = nodeSize * newZoom;
-        
-        // Use a more conservative threshold and require sustained zoom
-        if (visualNodeSize <= 15) { // Switch to group view when nodes are smaller than 15px
+        // Simple zoom out threshold
+        if (newZoom <= 0.4) { // Switch to group view when zoomed out significantly
           setIsZooming(true);
           setIsTransitioning(true);
           setLastSwitchTime(now);
@@ -450,27 +449,24 @@ export default function ReactFlowCanvas({
           setTimeout(() => {
             setIsZooming(false);
             setIsTransitioning(false);
-          }, 1000); // Longer debounce
+          }, 1000);
         }
-      } else if (currentLayer > 0 && groupNodes.length > 0) {
+      } else if (currentLayer > 0) {
         // We're in group view - check if we should drill down to individual view
-        const groupNodeSize = 200; // Base size of group nodes in pixels (they're scaled 2.5x)
-        const visualGroupSize = groupNodeSize * newZoom;
-        
-        // Use a more conservative threshold and require sustained zoom
-        if (visualGroupSize >= 80) { // Switch to individual view when group nodes are larger than 80px
+        // Simple zoom in threshold - much more aggressive
+        if (newZoom >= 1.2) { // Switch to individual view when zoomed in
           setIsZooming(true);
           setIsTransitioning(true);
           setLastSwitchTime(now);
-          onNavigateToLayer(0);
+          onNavigateUp(); // Use proper navigation instead of direct layer change
           setTimeout(() => {
             setIsZooming(false);
             setIsTransitioning(false);
-          }, 1000); // Longer debounce
+          }, 1000);
         }
       }
     }
-  }, [currentLayer, isZooming, isTransitioning, lastSwitchTime, onNavigateToLayer, reactFlowInstance]);
+  }, [currentLayer, isZooming, isTransitioning, lastSwitchTime, onNavigateUp, onNavigateToLayer, reactFlowInstance]);
 
   // Sync zoom level with layer changes - REMOVED AUTOMATIC CENTERING
   useEffect(() => {
