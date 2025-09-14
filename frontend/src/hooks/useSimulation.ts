@@ -13,6 +13,65 @@ export const useSimulation = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [simulationData, setSimulationData] = useState<any>(null);
 
+  // Initialize session and WebSocket connection
+  useEffect(() => {
+    const initializeSession = async () => {
+      try {
+        const result = await simulationAPI.createSession();
+        setSessionId(result.session_id);
+
+        // Connect WebSocket and set up listeners
+        simulationAPI.connectWebSocket();
+
+        simulationAPI.onSimulationUpdate((update: SimulationUpdate) => {
+          setSimulationData(update);
+          // Update nodes and connections with real-time data
+          const { nodes: updatedNodes, connections: updatedConnections } =
+            simulationAPI.convertReactFlowToInternal(update.graph);
+          setNodes(updatedNodes);
+          setConnections(updatedConnections);
+        });
+
+        simulationAPI.onSimulationComplete((data) => {
+          setIsSimulationRunning(false);
+          console.log('Simulation completed:', data);
+        });
+
+        simulationAPI.onSimulationError((error) => {
+          setIsSimulationRunning(false);
+          console.error('Simulation error:', error);
+        });
+
+      } catch (error) {
+        console.error('Failed to initialize session:', error);
+      }
+    };
+
+    initializeSession();
+
+    // Cleanup on unmount
+    return () => {
+      simulationAPI.disconnectWebSocket();
+    };
+  }, []);
+
+  // Submit graph to backend when nodes or connections change
+  useEffect(() => {
+    if (sessionId && (nodes.length > 0 || connections.length > 0)) {
+      const submitChanges = async () => {
+        try {
+          await simulationAPI.submitGraph(nodes, connections, sessionId);
+        } catch (error) {
+          console.error('Failed to submit graph changes:', error);
+        }
+      };
+
+      // Debounce to avoid too many API calls
+      const timeoutId = setTimeout(submitChanges, 1000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [nodes, connections, sessionId]);
+
   const addNode = (type: Node['type']) => {
     const newNode: Node = {
       id: Date.now().toString(),
@@ -80,9 +139,31 @@ export const useSimulation = () => {
     setConnectionStart(null);
   };
 
-  const toggleSimulation = () => {
-    setIsSimulationRunning(!isSimulationRunning);
-  };
+  const toggleSimulation = useCallback(async () => {
+    if (!sessionId) {
+      console.error('No active session');
+      return;
+    }
+
+    if (!isSimulationRunning) {
+      try {
+        setIsSimulationRunning(true);
+        await simulationAPI.startSimulation({
+          duration: 60, // 1 minute simulation
+          timestep: 0.1,
+          temperature: 20.0,
+          time_of_day: 0.5
+        }, sessionId);
+        console.log('Simulation started');
+      } catch (error) {
+        console.error('Failed to start simulation:', error);
+        setIsSimulationRunning(false);
+      }
+    } else {
+      // For now, we don't have a stop endpoint, so we just set the state
+      setIsSimulationRunning(false);
+    }
+  }, [sessionId, isSimulationRunning]);
 
   const getNetworkStats = () => {
     return {
@@ -102,7 +183,9 @@ export const useSimulation = () => {
     draggedNode,
     isConnecting,
     connectionStart,
-    
+    sessionId,
+    simulationData,
+
     // Actions
     setNodes,
     setConnections,
