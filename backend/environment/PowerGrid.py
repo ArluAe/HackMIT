@@ -1,5 +1,5 @@
-from Node import Node
-from Branch import Branch
+from .Node import Node
+from .Branch import Branch
 from collections import defaultdict
 
 import numpy as np
@@ -13,13 +13,15 @@ class PowerGrid:
         self.target_hz = target_hz
         self.grid_frequency = target_hz
         self.temperature = 25 # Celsius
+        self.total_inerta = 0
         
-        for node in ppc["bus"]:
-            index = int(node[0]) - 1
-            inertia = node[9]
-            friction = node[10]
+        for index in range(self.size):
+            node = ppc["bus"][index]
+            inertia = 1 # fix
+            friction = 1 # fix
             new_node = Node(index, inertia, friction, dt, target_hz)
             self.nodes[index] = new_node
+            self.total_inerta += inertia
 
         for branch in ppc["branch"]:
             node0 = int(branch[0]) - 1
@@ -53,9 +55,11 @@ class PowerGrid:
         for node in self.nodes:
             pertubation += (node.inertia * node.get_transmission())
         
-        pertubation = pertubation / sum([node.inertia for node in self.nodes])
+        pertubation = pertubation / self.total_inerta
 
         self.grid_frequency += pertubation * self.dt
+
+        print(f"Grid Frequency: {self.grid_frequency}")
 
 
     def simulate_day(self):

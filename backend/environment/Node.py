@@ -1,7 +1,5 @@
-# import Agent # Fix
 import numpy as np
-from agents.ProducerAgent import ProducerAgent
-
+from agents import ProducerAgent
 class Node:
     def __init__(self, index, inertia, friction, dt, target_hz):
         # Parameters
