@@ -1,5 +1,7 @@
 import numpy as np
-from agents import ProducerAgent, ConsumerAgent, BatteryAgent, BusinessAgent
+from agents import BaseAgent, ProducerAgent, ConsumerAgent
+from agents import BaseAgent
+import torch
 
 class Node:
     def __init__(self, agent, node_id, inertia, friction, dt, target_hz):
@@ -25,9 +27,16 @@ class Node:
 
     def time_step(self, state):
         self.power = self.agent.act(state)
+        # print(f"Power: {self.power}")
         self.d2offset = self.power - self.friction * self.doffset + self.get_transmission()
+        # print(f"D2Offset: {self.d2offset.shape}")
         self.doffset += self.d2offset * self.dt
         self.offset += self.doffset * self.dt
+        self.offset = self.offset % (2 * np.pi)
+
+    def update(self):
+        self.agent.update()
+        print(f"offset: {self.offset}")
     
     def get_transmission(self):
         total_transmission = 0
@@ -37,6 +46,7 @@ class Node:
             else:
                 total_transmission -= branch.get_transmission() # Positive if flowing in
         return total_transmission
+
     
     def gen_dict(self):
         return {

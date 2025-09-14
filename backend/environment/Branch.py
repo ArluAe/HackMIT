@@ -10,7 +10,6 @@ class Branch:
     def get_transmission(self):
         offset0 = self.node0.offset
         offset1 = self.node1.offset
-
         transmission = self.transmission_factor * math.sin(offset1 - offset0)
         return max(-self.capacity, min(transmission, self.capacity)) # Clamp to capacity
 

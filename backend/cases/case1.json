@@ -1,0 +1,100 @@
+{"simulation": {
+    "nodes": [
+      {
+        "id": "1757819114703",
+        "type": "solar-generator",
+        "x": 320,
+        "y": 243.83333206176758,
+        "name": "Solar Panel",
+        "status": "active",
+        "settings": {
+          "power": 500,
+          "type": "solar-generator",
+          "inertia": 2,
+          "friction": 0.1
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false
+      },
+      {
+        "id": "1757819116492",
+        "type": "natural-gas-generator",
+        "x": 320,
+        "y": 243.83333206176758,
+        "name": "Gas Plant",
+        "status": "active",
+        "settings": {
+          "power": 800,
+          "type": "natural-gas-generator",
+          "inertia": 3,
+          "friction": 0.1
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false
+      },
+      {
+        "id": "1757819160861",
+        "type": "grid",
+        "x": 540.8254185217492,
+        "y": 251.12007657314686,
+        "name": "Substation",
+        "status": "active",
+        "settings": {
+          "power": 2000,
+          "type": "grid",
+          "inertia": 0.1,
+          "friction": 0.4
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false
+      }
+    ],
+    "connections": [
+      {
+        "id": "1757819164813",
+        "from": "1757819116492",
+        "to": "1757819160861",
+        "power": 0,
+        "status": "active",
+        "resistance": 1,
+        "maxPower": 40
+      },
+      {
+        "id": "1757819170510",
+        "from": "1757819114703",
+        "to": "1757819160861",
+        "power": 0,
+        "status": "active",
+        "resistance": 1,
+        "maxPower": 200
+      }
+    ],
+    "families": [],
+    "layers": [
+      {
+        "layer": 0,
+        "name": "Individual Nodes",
+        "description": "Base layer with individual components",
+        "nodeCount": 3
+      },
+      {
+        "layer": 1,
+        "name": "Family Groups",
+        "description": "Grouped components by family",
+        "nodeCount": 0
+      }
+    ]
+  },
+  "viewport": {
+    "x": -100.22528133457456,
+    "y": 48.71120722682548,
+    "zoom": 0.777007268784049
+  },
+  "settings": {
+    "simulationRunning": false,
+    "currentLayer": 0
+  }
+}

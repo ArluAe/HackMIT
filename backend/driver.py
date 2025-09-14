@@ -2,21 +2,22 @@
 import json
 from environment.PowerGrid import PowerGrid
 
+
 def test_basic_initialization():
     """Test basic PowerGrid initialization"""
     print("=== Testing Basic Initialization ===")
     
     # Load JSON data from case1.json
-    with open('cases/case1.json', 'r') as f:
+    with open('backend/cases/case1.json', 'r') as f:
         network_dict = json.load(f)
     
     # Create PowerGrid
-    my_grid = PowerGrid(network_dict, 0.01)
+    my_grid = PowerGrid(network_dict, 100)
     
     print(f"✅ PowerGrid created successfully")
     print(f"   - Number of nodes: {len(my_grid.nodes)}")
     print(f"   - Total inertia: {my_grid.total_inertia}")
-    print(f"   - Grid frequency: {my_grid.grid_frequency}")
+    print(f"   - Grid frequency: {my_grid.pertubation}")
     
     return my_grid
 
@@ -24,10 +25,10 @@ def test_network_state():
     """Test getting network state"""
     print("\n=== Testing Network State ===")
     
-    with open('cases/case1.json', 'r') as f:
+    with open('backend/cases/case1.json', 'r') as f:
         network_dict = json.load(f)
     
-    my_grid = PowerGrid(network_dict, 0.01)
+    my_grid = PowerGrid(network_dict, 0.1)
     
     # Get network state
     network_state = my_grid.get_network_state()
@@ -44,7 +45,7 @@ def test_node_operations():
     """Test node-specific operations"""
     print("\n=== Testing Node Operations ===")
     
-    with open('cases/case1.json', 'r') as f:
+    with open('backend/cases/case1.json', 'r') as f:
         network_dict = json.load(f)
     
     my_grid = PowerGrid(network_dict, 0.01)
@@ -94,7 +95,7 @@ def test_connection_operations():
     """Test connection-specific operations"""
     print("\n=== Testing Connection Operations ===")
     
-    with open('cases/case1.json', 'r') as f:
+    with open('backend/cases/case1.json', 'r') as f:
         network_dict = json.load(f)
     
     my_grid = PowerGrid(network_dict, 0.01)
@@ -144,7 +145,7 @@ def test_removal_operations():
     """Test removal operations"""
     print("\n=== Testing Removal Operations ===")
     
-    with open('cases/case1.json', 'r') as f:
+    with open('backend/cases/case1.json', 'r') as f:
         network_dict = json.load(f)
     
     my_grid = PowerGrid(network_dict, 0.01)
@@ -191,14 +192,16 @@ def test_simulation():
     """Test running the simulation"""
     print("\n=== Testing Simulation ===")
     
-    with open('cases/case1.json', 'r') as f:
+    with open('backend/cases/case1.json', 'r') as f:
         network_dict = json.load(f)
     
-    my_grid = PowerGrid(network_dict, 0.01)
+    my_grid = PowerGrid(network_dict, 0.1)
     
     print(f"✅ Starting simulation with {len(my_grid.nodes)} nodes")
     
     # Run a short simulation
+    while True:
+        my_grid.simulate_day()
     try:
         my_grid.simulate_day()
         print(f"✅ Simulation completed successfully")
