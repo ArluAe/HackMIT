@@ -1,7 +1,4 @@
-from agents import ConsumerAgent
-from agents import ProducerAgent
-from agents import BusinessAgent
-from agents import BatteryAgent
+from agents import ConsumerAgent, ProducerAgent, BusinessAgent, BatteryAgent
 from .Node import Node
 from .Branch import Branch
 from collections import defaultdict
@@ -85,11 +82,38 @@ class PowerGrid:
         """Get node by its ID"""
         return self.nodes.get(node_id)
     
+    def calculate_electricity_price(self):
+        """Calculate electricity price based on supply and demand"""
+        total_supply = 0
+        total_demand = 0
+
+        for node in self.nodes:
+            agent = node.agent
+            if agent.delta_e > 0:  # Producing/discharging
+                total_supply += agent.delta_e
+            else:  # Consuming/charging
+                total_demand += abs(agent.delta_e)
+
+        # Price model: base price modified by supply/demand ratio
+        base_price = 50.0  # $/MWh
+        if total_supply > 0:
+            supply_demand_ratio = total_demand / (total_supply + 1e-6)
+            # Price increases with demand, decreases with supply
+            price = base_price * (0.5 + supply_demand_ratio)
+            price = min(200, max(10, price))  # Cap between $10 and $200/MWh
+        else:
+            price = 150.0  # High price when no supply
+
+        return price
+
     def time_step(self, temperature, time_of_day):
+        # Calculate current electricity price before actions
+        current_price = self.calculate_electricity_price()
+
         state = dict()
-        state["pertubation"] = self.pertubation
-        state["temperature"] = temperature
-        state["avg_price"] = 0 # implement
+
+        state["frequency"] = self.grid_frequency
+        state["avg_cost"] = current_price
         state["time_of_day"] = time_of_day
 
         # Run time step process on all nodes PARALLELIZATION HERE
@@ -102,6 +126,21 @@ class PowerGrid:
             self.pertubation += (node.inertia * node.get_transmission())
 
         # print(f"Pertubation: {self.pertubation}")
+
+        # Calculate new price after actions
+        new_price = self.calculate_electricity_price()
+
+        # Compute and update rewards for all agents after state update
+        updated_state = dict()
+        updated_state["frequency"] = self.grid_frequency
+        updated_state["avg_cost"] = new_price
+        updated_state["time_of_day"] = time_of_day
+        updated_state["prev_cost"] = current_price  # Pass previous price for comparison
+
+        all_agents = [node.agent for node in self.nodes]
+        for node in self.nodes:
+            reward = node.agent.compute_reward(updated_state, all_agents)
+            node.agent.update_reward(reward)
 
 
     def simulate_day(self):

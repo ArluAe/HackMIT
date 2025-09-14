@@ -10,7 +10,9 @@ class BatteryAgent(BaseAgent):
         self.startup_rate = startup_rate
         self.efficiency = efficiency
         self.soc = soc
-        self.total_arbitrage = 0.0
+        self.buy_prices = []  # Track prices when charging
+        self.sell_prices = []  # Track prices when discharging
+        self.total_profit = 0.0  # Track cumulative profit
         self.policy = Policy(agent_type=3)  # Battery agent type
 
     def act(self, state):
@@ -55,14 +57,14 @@ class BatteryAgent(BaseAgent):
         """Convert state to normalized observation vector."""
         global_features = [
             state.get("frequency", 60) / 60.0,
-            state.get("temperature", 0),
-            state.get("avg_cost", 1.0) / 10.0,
-            state.get("time_of_day", 12) / 24.0
+            state.get("avg_cost", 50.0) / 100.0,  # Normalized price
+            state.get("time_of_day", 0.5),  # Already normalized
+            self.soc  # State of charge is critical for batteries
         ]
 
         agent_features = [
-            self.soc,
-            (self.capacity - abs(self.delta_e)) / self.capacity,
+            abs(self.delta_e) / self.charge_rate if self.charge_rate > 0 else 0,  # Utilization
+            self.total_profit / 1000.0,  # Normalized profit
             self.episode_reward / 10.0
         ]
 
@@ -70,72 +72,94 @@ class BatteryAgent(BaseAgent):
 
     def compute_reward(self, state, all_agents):
         """
-        Adversarial reward: maximize arbitrage + market manipulation + competitive advantage
+        Battery reward: Buy low, sell high arbitrage
 
         Args:
             state: Environment state
-            all_agents: List of all agents for competition
+            all_agents: List of all agents
 
         Returns:
             float: Reward in [-1, 1] range
         """
-        # Arbitrage profit component
-        price = state.get("avg_cost", 1.0)
-        if self.delta_e > 0:  # charging (buying)
-            transaction_profit = -self.delta_e * price  # negative (cost)
-        elif self.delta_e < 0:  # discharging (selling)
-            transaction_profit = abs(self.delta_e) * price  # positive (revenue)
+        current_price = state.get("avg_cost", 50.0)
+        time_of_day = state.get("time_of_day", 0.5)
+
+        # Track transaction and calculate immediate profit
+        transaction_reward = 0
+        if self.delta_e > 0:  # Charging (buying)
+            cost = self.delta_e * current_price / 60.0  # MW * $/MWh / 60 = cost per minute
+            self.buy_prices.append(current_price)
+            self.total_profit -= cost
+            # Reward for buying at low price
+            if current_price < 40:  # Below average
+                transaction_reward = 0.5
+            elif current_price < 50:
+                transaction_reward = 0.2
+            else:
+                transaction_reward = -0.3  # Penalty for buying high
+
+        elif self.delta_e < 0:  # Discharging (selling)
+            revenue = abs(self.delta_e) * current_price / 60.0  # MW * $/MWh / 60 = revenue per minute
+            self.sell_prices.append(current_price)
+            self.total_profit += revenue
+            # Reward for selling at high price
+            if current_price > 60:  # Above average
+                transaction_reward = 0.5
+            elif current_price > 50:
+                transaction_reward = 0.2
+            else:
+                transaction_reward = -0.3  # Penalty for selling low
+
+        # Arbitrage performance: Average sell price vs average buy price
+        arbitrage_reward = 0
+        if len(self.buy_prices) > 0 and len(self.sell_prices) > 0:
+            avg_buy = np.mean(self.buy_prices[-10:])  # Recent average
+            avg_sell = np.mean(self.sell_prices[-10:])
+            spread = (avg_sell - avg_buy) / avg_buy if avg_buy > 0 else 0
+            arbitrage_reward = max(-1, min(1, spread * 5))  # Scale spread to reward
+
+        # SOC management: Maintain flexibility
+        soc_reward = 0
+        if 0.2 <= self.soc <= 0.8:  # Optimal range for flexibility
+            soc_reward = 0.2
+        elif self.soc < 0.1 or self.soc > 0.9:  # Too extreme
+            soc_reward = -0.5
         else:
-            transaction_profit = 0
+            soc_reward = 0
 
-        self.total_arbitrage += transaction_profit
-
-        # Normalize arbitrage reward
-        arbitrage_reward = min(1, max(-1, transaction_profit / 10.0))
-
-        # Market impact reward (reward for affecting prices)
-        frequency = state.get("frequency", 60)
-        frequency_deviation = abs(frequency - 60)
-
-        # Reward for creating beneficial instability that batteries can exploit
-        if abs(self.delta_e) > 0:
-            market_impact = frequency_deviation * abs(self.delta_e) / (self.charge_rate + 1e-8)
-            impact_reward = min(1, market_impact / 5.0)
-        else:
-            impact_reward = 0
+        # Strategic timing based on typical daily price patterns
+        timing_reward = 0
+        if time_of_day < 0.3 or time_of_day > 0.8:  # Off-peak hours
+            if self.delta_e > 0:  # Charging during off-peak
+                timing_reward = 0.3
+            elif self.delta_e < 0:  # Discharging during off-peak
+                timing_reward = -0.2
+        else:  # Peak hours
+            if self.delta_e < 0:  # Discharging during peak
+                timing_reward = 0.3
+            elif self.delta_e > 0:  # Charging during peak
+                timing_reward = -0.2
 
         # Competition with other batteries
-        battery_agents = [a for a in all_agents if isinstance(a, BatteryAgent)]
+        battery_agents = [a for a in all_agents if type(a).__name__ == 'BatteryAgent']
+        competition_reward = 0
         if len(battery_agents) > 1:
-            my_profit_rate = self.total_arbitrage
-            others_profit = [a.total_arbitrage for a in battery_agents if a != self]
-            if others_profit:
-                competitive_advantage = my_profit_rate - np.mean(others_profit)
-                competition_reward = min(1, max(-1, competitive_advantage / 20.0))
-            else:
-                competition_reward = 0
-        else:
-            competition_reward = 0
-
-        # SoC management penalty (operational constraints)
-        if self.soc < 0.1:  # nearly empty
-            soc_penalty = -2 * (0.1 - self.soc)
-        elif self.soc > 0.9:  # nearly full
-            soc_penalty = -2 * (self.soc - 0.9)
-        else:
-            soc_penalty = 0
-
-        # Zero-sum component: profit from others' inefficiency
-        other_rewards = [a.episode_reward for a in all_agents if a != self]
-        exploitation_reward = -np.mean(other_rewards) * 0.1 if other_rewards else 0
+            my_profit = self.total_profit
+            for other in battery_agents:
+                if other != self:
+                    if my_profit > other.total_profit:
+                        competition_reward += 0.2
+                    else:
+                        competition_reward -= 0.1
+            competition_reward = max(-1, min(1, competition_reward))
 
         # Weighted combination
         total_reward = (
-            0.4 * arbitrage_reward +
-            0.2 * impact_reward +
-            0.2 * competition_reward +
-            0.1 * exploitation_reward +
-            0.1 * soc_penalty
+            0.3 * transaction_reward +   # Immediate transaction quality
+            0.3 * arbitrage_reward +      # Buy low/sell high spread
+            0.2 * timing_reward +         # Strategic timing
+            0.1 * soc_reward +           # SOC management
+            0.1 * competition_reward      # Beat other batteries
         )
 
         return max(-1, min(1, total_reward))

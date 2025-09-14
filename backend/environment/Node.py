@@ -1,5 +1,6 @@
 import numpy as np
-from agents import ProducerAgent
+from agents import ProducerAgent, ConsumerAgent, BatteryAgent, BusinessAgent
+
 class Node:
     def __init__(self, agent, node_id, inertia, friction, dt, target_hz):
         # Parameters
@@ -8,7 +9,7 @@ class Node:
         self.friction = friction
         self.connections = []
         self.dt = dt
-        
+
         # State Variables
         self.grid_frequency = target_hz
         self.offset = 0
