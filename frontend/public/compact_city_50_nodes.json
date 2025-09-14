@@ -1,0 +1,1280 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "Compact City Energy Network",
+    "description": "Well-spaced 50-node city energy infrastructure simulation",
+    "createdAt": "2025-09-14T10:40:33.281164Z",
+    "author": "GridForge Generator"
+  },
+  "simulation": {
+    "nodes": [
+      {
+        "id": "5309033439831",
+        "type": "nuclear-generator",
+        "x": 3600,
+        "y": 1100,
+        "name": "Nuclear Plant",
+        "status": "active",
+        "settings": {
+          "power": 15000,
+          "type": "nuclear-generator",
+          "inertia": 7.232107381488228,
+          "friction": 2.472942428328025
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "1560157888921",
+        "type": "coal-generator",
+        "x": 4400,
+        "y": 1100,
+        "name": "Coal Plant",
+        "status": "active",
+        "settings": {
+          "power": 8000,
+          "type": "coal-generator",
+          "inertia": 5.297972194380703,
+          "friction": 1.4372759496072067
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "8381094320374",
+        "type": "hydro-generator",
+        "x": 4000,
+        "y": 1400,
+        "name": "Hydro Dam",
+        "status": "active",
+        "settings": {
+          "power": 6000,
+          "type": "hydro-generator",
+          "inertia": 7.204406220406967,
+          "friction": 2.1785313677518174
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "1115402766155",
+        "type": "solar-generator",
+        "x": 3400,
+        "y": 1600,
+        "name": "Solar Farm 1",
+        "status": "active",
+        "settings": {
+          "power": 1828,
+          "type": "solar-generator",
+          "inertia": 2.5176147342595345,
+          "friction": 0.6596593163768901
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "5889134147702",
+        "type": "solar-generator",
+        "x": 3800,
+        "y": 1600,
+        "name": "Solar Farm 2",
+        "status": "active",
+        "settings": {
+          "power": 1432,
+          "type": "solar-generator",
+          "inertia": 1.310958999623563,
+          "friction": 1.4572130722067813
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "2628231594989",
+        "type": "solar-generator",
+        "x": 4200,
+        "y": 1600,
+        "name": "Solar Farm 3",
+        "status": "active",
+        "settings": {
+          "power": 1344,
+          "type": "solar-generator",
+          "inertia": 1.7598546012746747,
+          "friction": 0.8589793804846284
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "5654042565123",
+        "type": "solar-generator",
+        "x": 4600,
+        "y": 1600,
+        "name": "Solar Farm 4",
+        "status": "active",
+        "settings": {
+          "power": 1352,
+          "type": "solar-generator",
+          "inertia": 2.61425654654876,
+          "friction": 1.2297317866938178
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "7661160537249",
+        "type": "solar-generator",
+        "x": 3400,
+        "y": 1800,
+        "name": "Solar Farm 5",
+        "status": "active",
+        "settings": {
+          "power": 1549,
+          "type": "solar-generator",
+          "inertia": 1.1576003961569163,
+          "friction": 0.7931782814070929
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "7364547568321",
+        "type": "solar-generator",
+        "x": 3800,
+        "y": 1800,
+        "name": "Solar Farm 6",
+        "status": "active",
+        "settings": {
+          "power": 1643,
+          "type": "solar-generator",
+          "inertia": 2.154704290513524,
+          "friction": 1.2045718362149236
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "5010044591513",
+        "type": "solar-generator",
+        "x": 4200,
+        "y": 1800,
+        "name": "Solar Farm 7",
+        "status": "active",
+        "settings": {
+          "power": 1046,
+          "type": "solar-generator",
+          "inertia": 2.5461366815773836,
+          "friction": 1.4852215206607577
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "7683402910416",
+        "type": "solar-generator",
+        "x": 4600,
+        "y": 1800,
+        "name": "Solar Farm 8",
+        "status": "active",
+        "settings": {
+          "power": 1875,
+          "type": "solar-generator",
+          "inertia": 1.5559472062201842,
+          "friction": 1.1356844442644003
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2961251404189",
+        "familyName": "Power Generation Complex"
+      },
+      {
+        "id": "4686607816019",
+        "type": "factory",
+        "x": 1400,
+        "y": 1600,
+        "name": "Factory 1",
+        "status": "active",
+        "settings": {
+          "power": 6032,
+          "type": "factory",
+          "inertia": 4.01052552313308,
+          "friction": 1.7018203134585512
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_3862015161409",
+        "familyName": "Industrial Zone"
+      },
+      {
+        "id": "5306688806356",
+        "type": "factory",
+        "x": 1800,
+        "y": 1600,
+        "name": "Factory 2",
+        "status": "active",
+        "settings": {
+          "power": 3584,
+          "type": "factory",
+          "inertia": 2.4902074812857853,
+          "friction": 1.379455441757648
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_3862015161409",
+        "familyName": "Industrial Zone"
+      },
+      {
+        "id": "5028919575309",
+        "type": "factory",
+        "x": 1400,
+        "y": 1840,
+        "name": "Factory 3",
+        "status": "active",
+        "settings": {
+          "power": 7562,
+          "type": "factory",
+          "inertia": 4.465407782020425,
+          "friction": 1.8050458007712145
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_3862015161409",
+        "familyName": "Industrial Zone"
+      },
+      {
+        "id": "2165086075550",
+        "type": "factory",
+        "x": 1800,
+        "y": 1840,
+        "name": "Factory 4",
+        "status": "active",
+        "settings": {
+          "power": 6286,
+          "type": "factory",
+          "inertia": 2.6329485307589793,
+          "friction": 1.9429097143350544
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_3862015161409",
+        "familyName": "Industrial Zone"
+      },
+      {
+        "id": "7959991201457",
+        "type": "factory",
+        "x": 1400,
+        "y": 2080,
+        "name": "Factory 5",
+        "status": "active",
+        "settings": {
+          "power": 5577,
+          "type": "factory",
+          "inertia": 4.654049461660108,
+          "friction": 1.6428518702004242
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_3862015161409",
+        "familyName": "Industrial Zone"
+      },
+      {
+        "id": "3453563977694",
+        "type": "factory",
+        "x": 1800,
+        "y": 2080,
+        "name": "Factory 6",
+        "status": "active",
+        "settings": {
+          "power": 4170,
+          "type": "factory",
+          "inertia": 2.7398825230819503,
+          "friction": 1.5613681341631507
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_3862015161409",
+        "familyName": "Industrial Zone"
+      },
+      {
+        "id": "4858435394711",
+        "type": "residential",
+        "x": 5600,
+        "y": 2000,
+        "name": "House 1",
+        "status": "active",
+        "settings": {
+          "power": 17,
+          "type": "residential",
+          "inertia": 1.9959886669837414,
+          "friction": 0.28299904693451355
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "3689120466741",
+        "type": "residential",
+        "x": 5720,
+        "y": 2000,
+        "name": "House 2",
+        "status": "active",
+        "settings": {
+          "power": 20,
+          "type": "residential",
+          "inertia": 1.4411690625546352,
+          "friction": 0.6752476186177785
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "2119253054260",
+        "type": "residential",
+        "x": 5840,
+        "y": 2000,
+        "name": "House 3",
+        "status": "active",
+        "settings": {
+          "power": 18,
+          "type": "residential",
+          "inertia": 1.07715096751175,
+          "friction": 0.557533057016677
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "5421793876393",
+        "type": "residential",
+        "x": 5600,
+        "y": 2100,
+        "name": "House 4",
+        "status": "active",
+        "settings": {
+          "power": 19,
+          "type": "residential",
+          "inertia": 1.9566175664204273,
+          "friction": 0.716467821340699
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "5693329282832",
+        "type": "residential",
+        "x": 5720,
+        "y": 2100,
+        "name": "House 5",
+        "status": "active",
+        "settings": {
+          "power": 5,
+          "type": "residential",
+          "inertia": 1.652898098986169,
+          "friction": 0.4041052838186272
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "3780711143066",
+        "type": "residential",
+        "x": 5840,
+        "y": 2100,
+        "name": "House 6",
+        "status": "active",
+        "settings": {
+          "power": 14,
+          "type": "residential",
+          "inertia": 1.1805855594938097,
+          "friction": 0.7722895565126482
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "9808857184395",
+        "type": "residential",
+        "x": 6000,
+        "y": 2000,
+        "name": "House 7",
+        "status": "active",
+        "settings": {
+          "power": 13,
+          "type": "residential",
+          "inertia": 1.642943298578097,
+          "friction": 0.5046090047625952
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "9931981275559",
+        "type": "residential",
+        "x": 6120,
+        "y": 2000,
+        "name": "House 8",
+        "status": "active",
+        "settings": {
+          "power": 8,
+          "type": "residential",
+          "inertia": 1.4134553171572586,
+          "friction": 0.2917035611297809
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "9595621798971",
+        "type": "residential",
+        "x": 6240,
+        "y": 2000,
+        "name": "House 9",
+        "status": "active",
+        "settings": {
+          "power": 10,
+          "type": "residential",
+          "inertia": 0.5292151135787484,
+          "friction": 0.7574591697587703
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "2018935689015",
+        "type": "residential",
+        "x": 6000,
+        "y": 2100,
+        "name": "House 10",
+        "status": "active",
+        "settings": {
+          "power": 14,
+          "type": "residential",
+          "inertia": 0.8613073886708497,
+          "friction": 0.540414166213346
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "3215197391284",
+        "type": "residential",
+        "x": 6120,
+        "y": 2100,
+        "name": "House 11",
+        "status": "active",
+        "settings": {
+          "power": 7,
+          "type": "residential",
+          "inertia": 0.6925871967496442,
+          "friction": 0.48516942685923886
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "8019315372954",
+        "type": "residential",
+        "x": 6240,
+        "y": 2100,
+        "name": "House 12",
+        "status": "active",
+        "settings": {
+          "power": 10,
+          "type": "residential",
+          "inertia": 1.992724034991342,
+          "friction": 0.5899268345836721
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "3127947929743",
+        "type": "residential",
+        "x": 5600,
+        "y": 2300,
+        "name": "House 13",
+        "status": "active",
+        "settings": {
+          "power": 19,
+          "type": "residential",
+          "inertia": 0.8718584204990119,
+          "friction": 0.238415537795807
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "1125499878070",
+        "type": "residential",
+        "x": 5720,
+        "y": 2300,
+        "name": "House 14",
+        "status": "active",
+        "settings": {
+          "power": 5,
+          "type": "residential",
+          "inertia": 0.6064896290135489,
+          "friction": 0.5786617743620595
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "2246959695420",
+        "type": "residential",
+        "x": 5840,
+        "y": 2300,
+        "name": "House 15",
+        "status": "active",
+        "settings": {
+          "power": 12,
+          "type": "residential",
+          "inertia": 1.2712341797128837,
+          "friction": 0.3670863583787282
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "5275522566137",
+        "type": "residential",
+        "x": 5600,
+        "y": 2400,
+        "name": "House 16",
+        "status": "active",
+        "settings": {
+          "power": 20,
+          "type": "residential",
+          "inertia": 1.67692913643613,
+          "friction": 0.6844981986599861
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "2705507142740",
+        "type": "residential",
+        "x": 5720,
+        "y": 2400,
+        "name": "House 17",
+        "status": "active",
+        "settings": {
+          "power": 11,
+          "type": "residential",
+          "inertia": 1.4884741242719945,
+          "friction": 0.41257853995373234
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "1952319129370",
+        "type": "residential",
+        "x": 5840,
+        "y": 2400,
+        "name": "House 18",
+        "status": "active",
+        "settings": {
+          "power": 18,
+          "type": "residential",
+          "inertia": 1.5100468209399522,
+          "friction": 0.7904991268195798
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_8535883414905",
+        "familyName": "Residential District"
+      },
+      {
+        "id": "6968837227691",
+        "type": "commercial-building",
+        "x": 3600,
+        "y": 4100,
+        "name": "Office 1",
+        "status": "active",
+        "settings": {
+          "power": 406,
+          "type": "commercial-building",
+          "inertia": 2.6011850217233974,
+          "friction": 0.609269032244804
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2065574590958",
+        "familyName": "Commercial Center"
+      },
+      {
+        "id": "3467238008445",
+        "type": "commercial-building",
+        "x": 4000,
+        "y": 4100,
+        "name": "Office 2",
+        "status": "active",
+        "settings": {
+          "power": 298,
+          "type": "commercial-building",
+          "inertia": 1.8437632796688084,
+          "friction": 0.7785451446669405
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2065574590958",
+        "familyName": "Commercial Center"
+      },
+      {
+        "id": "8795689417874",
+        "type": "commercial-building",
+        "x": 4400,
+        "y": 4100,
+        "name": "Office 3",
+        "status": "active",
+        "settings": {
+          "power": 327,
+          "type": "commercial-building",
+          "inertia": 2.6160444894634054,
+          "friction": 1.3559668924683728
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2065574590958",
+        "familyName": "Commercial Center"
+      },
+      {
+        "id": "1261288748912",
+        "type": "commercial-building",
+        "x": 3600,
+        "y": 4300,
+        "name": "Office 4",
+        "status": "active",
+        "settings": {
+          "power": 250,
+          "type": "commercial-building",
+          "inertia": 2.9379925145695025,
+          "friction": 1.4263669830081276
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2065574590958",
+        "familyName": "Commercial Center"
+      },
+      {
+        "id": "8147539881314",
+        "type": "commercial-building",
+        "x": 4000,
+        "y": 4300,
+        "name": "Office 5",
+        "status": "active",
+        "settings": {
+          "power": 321,
+          "type": "commercial-building",
+          "inertia": 1.971282250901437,
+          "friction": 0.7137472991991817
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2065574590958",
+        "familyName": "Commercial Center"
+      },
+      {
+        "id": "2034668113652",
+        "type": "commercial-building",
+        "x": 4400,
+        "y": 4300,
+        "name": "Office 6",
+        "status": "active",
+        "settings": {
+          "power": 405,
+          "type": "commercial-building",
+          "inertia": 1.3292742428030537,
+          "friction": 0.5021553783514264
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_2065574590958",
+        "familyName": "Commercial Center"
+      },
+      {
+        "id": "3725099503481",
+        "type": "battery-storage",
+        "x": 6200,
+        "y": 3700,
+        "name": "Battery 1",
+        "status": "active",
+        "settings": {
+          "power": 3863,
+          "type": "battery-storage",
+          "inertia": 2.5696936018029115,
+          "friction": 1.2177008984141748,
+          "soc": 0.4711495373681522
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_5666011332132",
+        "familyName": "Energy Storage Complex"
+      },
+      {
+        "id": "2071775567376",
+        "type": "battery-storage",
+        "x": 6600,
+        "y": 3700,
+        "name": "Battery 2",
+        "status": "active",
+        "settings": {
+          "power": 2239,
+          "type": "battery-storage",
+          "inertia": 4.243926681137192,
+          "friction": 1.0571652729074832,
+          "soc": 0.6475081744897537
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_5666011332132",
+        "familyName": "Energy Storage Complex"
+      },
+      {
+        "id": "3768240108027",
+        "type": "battery-storage",
+        "x": 6200,
+        "y": 3900,
+        "name": "Battery 3",
+        "status": "active",
+        "settings": {
+          "power": 4392,
+          "type": "battery-storage",
+          "inertia": 2.1706387391860535,
+          "friction": 1.5078284969934184,
+          "soc": 0.5860731102653609
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_5666011332132",
+        "familyName": "Energy Storage Complex"
+      },
+      {
+        "id": "5139754991340",
+        "type": "battery-storage",
+        "x": 6600,
+        "y": 3900,
+        "name": "Battery 4",
+        "status": "active",
+        "settings": {
+          "power": 2761,
+          "type": "battery-storage",
+          "inertia": 3.211326653954832,
+          "friction": 1.9415961272290894,
+          "soc": 0.3411127996222754
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_5666011332132",
+        "familyName": "Energy Storage Complex"
+      },
+      {
+        "id": "1698338142294",
+        "type": "grid",
+        "x": 4000,
+        "y": 3000,
+        "name": "Substation 1",
+        "status": "active",
+        "settings": {
+          "power": 12742,
+          "type": "grid",
+          "inertia": 6.096907551660515,
+          "friction": 1.838449830671745
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_5331773771640",
+        "familyName": "Grid Infrastructure"
+      },
+      {
+        "id": "4591712639586",
+        "type": "grid",
+        "x": 3200,
+        "y": 3000,
+        "name": "Substation 2",
+        "status": "active",
+        "settings": {
+          "power": 12781,
+          "type": "grid",
+          "inertia": 6.348629873849146,
+          "friction": 1.6283677255911522
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_5331773771640",
+        "familyName": "Grid Infrastructure"
+      },
+      {
+        "id": "3303802357926",
+        "type": "grid",
+        "x": 4800,
+        "y": 3000,
+        "name": "Substation 3",
+        "status": "active",
+        "settings": {
+          "power": 10175,
+          "type": "grid",
+          "inertia": 6.358451114799856,
+          "friction": 1.5999941595975244
+        },
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false,
+        "familyId": "family_5331773771640",
+        "familyName": "Grid Infrastructure"
+      }
+    ],
+    "connections": [
+      {
+        "id": "1163520327555",
+        "from": "5309033439831",
+        "to": "1698338142294",
+        "power": 5754,
+        "status": "active",
+        "resistance": 0.3484637021972371,
+        "maxPower": 17224
+      },
+      {
+        "id": "2760919825741",
+        "from": "1560157888921",
+        "to": "1698338142294",
+        "power": 2600,
+        "status": "active",
+        "resistance": 0.3150537616406509,
+        "maxPower": 16288
+      },
+      {
+        "id": "3329011301551",
+        "from": "8381094320374",
+        "to": "1698338142294",
+        "power": 4859,
+        "status": "active",
+        "resistance": 0.4523456694745759,
+        "maxPower": 12002
+      },
+      {
+        "id": "6013813941202",
+        "from": "1115402766155",
+        "to": "4591712639586",
+        "power": 3292,
+        "status": "active",
+        "resistance": 0.27527382920308396,
+        "maxPower": 16900
+      },
+      {
+        "id": "6324486160707",
+        "from": "5889134147702",
+        "to": "1698338142294",
+        "power": 7010,
+        "status": "active",
+        "resistance": 0.4935413241005929,
+        "maxPower": 18714
+      },
+      {
+        "id": "1139710736463",
+        "from": "2628231594989",
+        "to": "1698338142294",
+        "power": 7471,
+        "status": "active",
+        "resistance": 0.4268416540461847,
+        "maxPower": 12905
+      },
+      {
+        "id": "3366003539397",
+        "from": "5654042565123",
+        "to": "3303802357926",
+        "power": 4166,
+        "status": "active",
+        "resistance": 0.1461714681676409,
+        "maxPower": 9753
+      },
+      {
+        "id": "5789556178730",
+        "from": "7661160537249",
+        "to": "4591712639586",
+        "power": 4308,
+        "status": "active",
+        "resistance": 0.3419319308120896,
+        "maxPower": 19757
+      },
+      {
+        "id": "4579180417194",
+        "from": "7364547568321",
+        "to": "1698338142294",
+        "power": 7631,
+        "status": "active",
+        "resistance": 0.35369518355403196,
+        "maxPower": 12325
+      },
+      {
+        "id": "9596400274673",
+        "from": "5010044591513",
+        "to": "1698338142294",
+        "power": 4057,
+        "status": "active",
+        "resistance": 0.46213459643172927,
+        "maxPower": 8832
+      },
+      {
+        "id": "1774282445811",
+        "from": "7683402910416",
+        "to": "3303802357926",
+        "power": 2029,
+        "status": "active",
+        "resistance": 0.23342261544203527,
+        "maxPower": 10143
+      },
+      {
+        "id": "8523518553916",
+        "from": "4591712639586",
+        "to": "3453563977694",
+        "power": 1648,
+        "status": "active",
+        "resistance": 0.50966969960834,
+        "maxPower": 2616
+      },
+      {
+        "id": "3605123258594",
+        "from": "4591712639586",
+        "to": "5028919575309",
+        "power": 1380,
+        "status": "active",
+        "resistance": 0.6274455192821388,
+        "maxPower": 4525
+      },
+      {
+        "id": "7295987940544",
+        "from": "3303802357926",
+        "to": "8019315372954",
+        "power": 930,
+        "status": "active",
+        "resistance": 1.1820666883105764,
+        "maxPower": 7463
+      },
+      {
+        "id": "7219554139843",
+        "from": "3303802357926",
+        "to": "3689120466741",
+        "power": 1646,
+        "status": "active",
+        "resistance": 1.3841347014510088,
+        "maxPower": 5329
+      },
+      {
+        "id": "1435562487919",
+        "from": "1698338142294",
+        "to": "8147539881314",
+        "power": 867,
+        "status": "active",
+        "resistance": 1.236564471755082,
+        "maxPower": 4721
+      },
+      {
+        "id": "5691170157410",
+        "from": "1698338142294",
+        "to": "3467238008445",
+        "power": 826,
+        "status": "active",
+        "resistance": 1.2873745091354711,
+        "maxPower": 2885
+      },
+      {
+        "id": "9280089609335",
+        "from": "3303802357926",
+        "to": "5139754991340",
+        "power": 955,
+        "status": "active",
+        "resistance": 0.6995728300257519,
+        "maxPower": 5770
+      },
+      {
+        "id": "6370210891491",
+        "from": "3303802357926",
+        "to": "3725099503481",
+        "power": 966,
+        "status": "active",
+        "resistance": 0.722923547205809,
+        "maxPower": 7406
+      }
+    ],
+    "families": [
+      {
+        "id": "family_2961251404189",
+        "name": "Power Generation Complex",
+        "nodeIds": [
+          "5309033439831",
+          "1560157888921",
+          "8381094320374",
+          "1115402766155",
+          "5889134147702",
+          "2628231594989",
+          "5654042565123",
+          "7661160537249",
+          "7364547568321",
+          "5010044591513",
+          "7683402910416"
+        ],
+        "centerPosition": {
+          "x": 4000,
+          "y": 1200
+        },
+        "stats": {
+          "totalPower": 41069,
+          "nodeCount": 11,
+          "childTypes": {
+            "nuclear-generator": 1,
+            "coal-generator": 1,
+            "hydro-generator": 1,
+            "solar-generator": 8
+          }
+        }
+      },
+      {
+        "id": "family_3862015161409",
+        "name": "Industrial Zone",
+        "nodeIds": [
+          "4686607816019",
+          "5306688806356",
+          "5028919575309",
+          "2165086075550",
+          "7959991201457",
+          "3453563977694"
+        ],
+        "centerPosition": {
+          "x": 1600,
+          "y": 1800
+        },
+        "stats": {
+          "totalPower": 33211,
+          "nodeCount": 6,
+          "childTypes": {
+            "factory": 6
+          }
+        }
+      },
+      {
+        "id": "family_8535883414905",
+        "name": "Residential District",
+        "nodeIds": [
+          "4858435394711",
+          "3689120466741",
+          "2119253054260",
+          "5421793876393",
+          "5693329282832",
+          "3780711143066",
+          "9808857184395",
+          "9931981275559",
+          "9595621798971",
+          "2018935689015",
+          "3215197391284",
+          "8019315372954",
+          "3127947929743",
+          "1125499878070",
+          "2246959695420",
+          "5275522566137",
+          "2705507142740",
+          "1952319129370"
+        ],
+        "centerPosition": {
+          "x": 6000,
+          "y": 2200
+        },
+        "stats": {
+          "totalPower": 240,
+          "nodeCount": 18,
+          "childTypes": {
+            "residential": 18
+          }
+        }
+      },
+      {
+        "id": "family_2065574590958",
+        "name": "Commercial Center",
+        "nodeIds": [
+          "6968837227691",
+          "3467238008445",
+          "8795689417874",
+          "1261288748912",
+          "8147539881314",
+          "2034668113652"
+        ],
+        "centerPosition": {
+          "x": 4000,
+          "y": 4200
+        },
+        "stats": {
+          "totalPower": 2007,
+          "nodeCount": 6,
+          "childTypes": {
+            "commercial-building": 6
+          }
+        }
+      },
+      {
+        "id": "family_5666011332132",
+        "name": "Energy Storage Complex",
+        "nodeIds": [
+          "3725099503481",
+          "2071775567376",
+          "3768240108027",
+          "5139754991340"
+        ],
+        "centerPosition": {
+          "x": 6400,
+          "y": 3800
+        },
+        "stats": {
+          "totalPower": 13255,
+          "nodeCount": 4,
+          "childTypes": {
+            "battery-storage": 4
+          }
+        }
+      },
+      {
+        "id": "family_5331773771640",
+        "name": "Grid Infrastructure",
+        "nodeIds": [
+          "1698338142294",
+          "4591712639586",
+          "3303802357926"
+        ],
+        "centerPosition": {
+          "x": 4000,
+          "y": 3000
+        },
+        "stats": {
+          "totalPower": 35698,
+          "nodeCount": 3,
+          "childTypes": {
+            "grid": 3
+          }
+        }
+      }
+    ],
+    "layers": [
+      {
+        "layer": 0,
+        "name": "Individual Components",
+        "description": "Base layer with individual energy components",
+        "nodeCount": 48
+      },
+      {
+        "layer": 1,
+        "name": "District Families",
+        "description": "Grouped components by city districts",
+        "nodeCount": 6
+      }
+    ]
+  },
+  "viewport": {
+    "x": -334,
+    "y": -250,
+    "zoom": 0.05
+  },
+  "settings": {
+    "simulationRunning": false,
+    "currentLayer": 0
+  }
+}

@@ -304,6 +304,55 @@ export const useSimulation = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Load simulation from JSON data (for predefined models)
+  const loadSimulationFromData = (data: GraphExportData): { success: boolean; error?: string; viewport?: { x: number; y: number; zoom: number } } => {
+    try {
+      // Validate version compatibility
+      if (data.version !== '1.0') {
+        return { success: false, error: 'Incompatible file version. Please use a GridForge v1.0 export file.' };
+      }
+
+      // Validate data structure
+      if (!data.simulation || !data.simulation.nodes || !data.simulation.connections) {
+        return { success: false, error: 'Invalid file format. Missing required simulation data.' };
+      }
+
+      // Clear current simulation
+      setNodes([]);
+      setConnections([]);
+      setSelectedNodes([]);
+      setSelectedNode(null);
+      setCurrentLayer(0);
+      setLayerHistory([0]);
+
+      // Import nodes and connections
+      setConnections(data.simulation.connections);
+
+      // Use original node positions from the imported JSON file
+      console.log('🎯 LOAD: Preserving original node positions from JSON data');
+      console.log('Original positions:', data.simulation.nodes.map(n => ({ id: n.id, x: n.x, y: n.y })));
+      
+      // Validate that nodes have x,y coordinates, set defaults if missing
+      const importedNodes = data.simulation.nodes.map(node => ({
+        ...node,
+        x: typeof node.x === 'number' ? node.x : 400 + Math.random() * 200,
+        y: typeof node.y === 'number' ? node.y : 300 + Math.random() * 200
+      }));
+
+      console.log('✅ LOAD: Nodes loaded with preserved positions:', importedNodes.map(n => ({ id: n.id, x: n.x, y: n.y })));
+      setNodes(importedNodes);
+
+      // Restore settings
+      setIsSimulationRunning(data.settings.simulationRunning);
+      setCurrentLayer(data.settings.currentLayer);
+
+      return { success: true, viewport: data.viewport };
+    } catch (error) {
+      console.error('Load failed:', error);
+      return { success: false, error: 'Failed to parse data. Please ensure it\'s valid GridForge data.' };
+    }
+  };
+
   const importGraph = (file: File): Promise<{ success: boolean; error?: string; viewport?: { x: number; y: number; zoom: number } }> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -334,27 +383,19 @@ export const useSimulation = () => {
           // Import nodes and connections
           setConnections(data.simulation.connections);
 
-          // Apply smart layout to the imported nodes
-          const layoutAlgorithm = detectBestLayout(data.simulation.nodes, data.simulation.connections);
-          console.log('Detected layout algorithm:', layoutAlgorithm);
-          console.log('Original nodes:', data.simulation.nodes.map(n => ({ id: n.id, x: n.x, y: n.y })));
+          // Use original node positions from the imported JSON file
+          console.log('🎯 IMPORT: Preserving original node positions from JSON file');
+          console.log('Original positions:', data.simulation.nodes.map(n => ({ id: n.id, x: n.x, y: n.y })));
           
-          const layoutOptions: LayoutOptions = {
-            width: 1200, // Canvas width
-            height: 800, // Canvas height
-            padding: 100,
-            algorithm: layoutAlgorithm,
-            iterations: 300
-          };
+          // Validate that nodes have x,y coordinates, set defaults if missing
+          const importedNodes = data.simulation.nodes.map(node => ({
+            ...node,
+            x: typeof node.x === 'number' ? node.x : 400 + Math.random() * 200,
+            y: typeof node.y === 'number' ? node.y : 300 + Math.random() * 200
+          }));
 
-          const positionedNodes = applySmartLayout(
-            data.simulation.nodes,
-            data.simulation.connections,
-            layoutOptions
-          );
-
-          console.log('Positioned nodes:', positionedNodes.map(n => ({ id: n.id, x: n.x, y: n.y })));
-          setNodes(positionedNodes);
+          console.log('✅ IMPORT: Nodes imported with preserved positions:', importedNodes.map(n => ({ id: n.id, x: n.x, y: n.y })));
+          setNodes(importedNodes);
 
           // Restore settings
           setIsSimulationRunning(data.settings.simulationRunning);
@@ -373,8 +414,9 @@ export const useSimulation = () => {
     });
   };
 
-  // Apply smart layout to current simulation
+  // Apply smart layout to current simulation (manual layout only - not used during import)
   const applyLayout = (algorithm?: LayoutOptions['algorithm']) => {
+    console.log('🔧 LAYOUT: Applying manual layout algorithm');
     const layoutAlgorithm = algorithm || detectBestLayout(nodes, connections);
     const layoutOptions: LayoutOptions = {
       width: 1200,
@@ -385,6 +427,7 @@ export const useSimulation = () => {
     };
 
     const positionedNodes = applySmartLayout(nodes, connections, layoutOptions);
+    console.log('✅ LAYOUT: Manual layout applied');
     setNodes(positionedNodes);
   };
 
@@ -434,6 +477,7 @@ export const useSimulation = () => {
     // Import/Export actions
     exportGraph,
     importGraph,
+    loadSimulationFromData,
     applyLayout,
     
     // Node creation modal

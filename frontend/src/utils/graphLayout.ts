@@ -259,46 +259,153 @@ const applyHierarchicalLayout = (
   const centerX = width / 2;
   const centerY = height / 2;
 
-  // Group nodes by families
-  const familyGroups = groupNodesByFamily(nodes);
-  
-  // Position family groups in a circle
-  const familyPositions = familyGroups.map((family, index) => {
-    const angle = (2 * Math.PI * index) / familyGroups.length;
-    const radius = Math.min(width, height) * 0.3;
-    return {
-      familyId: family.familyId,
-      x: centerX + radius * Math.cos(angle),
-      y: centerY + radius * Math.sin(angle)
+  // Define hierarchical categories and their positioning
+  const categories: {
+    [key: string]: {
+      types: string[];
+      position: { x: number; y: number };
+      layout: 'horizontal' | 'grid';
+      spacing: number;
     };
+  } = {
+    // Power Generation (top)
+    generation: {
+      types: ['coal-generator', 'nuclear-generator', 'hydro-generator', 'geothermal-generator', 'solar-generator', 'wind-generator'],
+      position: { x: centerX, y: padding + 100 },
+      layout: 'horizontal' as const,
+      spacing: 150
+    },
+    // Storage (middle-top)
+    storage: {
+      types: ['battery-storage'],
+      position: { x: centerX, y: padding + 250 },
+      layout: 'horizontal' as const,
+      spacing: 120
+    },
+    // Grid Infrastructure (middle)
+    grid: {
+      types: ['grid', 'substation'],
+      position: { x: centerX, y: centerY },
+      layout: 'grid' as const,
+      spacing: 200
+    },
+    // Industrial (middle-bottom)
+    industrial: {
+      types: ['factory', 'data-center'],
+      position: { x: centerX, y: centerY + 200 },
+      layout: 'grid' as const,
+      spacing: 180
+    },
+    // Commercial (bottom-left)
+    commercial: {
+      types: ['commercial', 'office', 'shopping-center'],
+      position: { x: centerX - 200, y: centerY + 350 },
+      layout: 'grid' as const,
+      spacing: 150
+    },
+    // Residential (bottom-right)
+    residential: {
+      types: ['residential'],
+      position: { x: centerX + 200, y: centerY + 350 },
+      layout: 'grid' as const,
+      spacing: 100
+    },
+    // Critical Infrastructure (bottom-center)
+    critical: {
+      types: ['hospital', 'school'],
+      position: { x: centerX, y: centerY + 450 },
+      layout: 'horizontal' as const,
+      spacing: 200
+    }
+  };
+
+  // Group nodes by category
+  const categorizedNodes: { [key: string]: SimulationNode[] } = {};
+  Object.keys(categories).forEach(category => {
+    categorizedNodes[category] = [];
   });
 
-  // Position nodes within each family
-  const positionedNodes = nodes.map(node => {
-    if (node.familyId) {
-      const familyPos = familyPositions.find(pos => pos.familyId === node.familyId);
-      if (familyPos) {
-        // Position nodes in a small cluster around family center
-        const familyNodes = nodes.filter(n => n.familyId === node.familyId);
-        const nodeIndex = familyNodes.findIndex(n => n.id === node.id);
-        const angle = (2 * Math.PI * nodeIndex) / familyNodes.length;
-        const radius = 80; // Small radius for family clustering
-        
-        return {
-          ...node,
-          x: familyPos.x + radius * Math.cos(angle),
-          y: familyPos.y + radius * Math.sin(angle)
-        };
+  // Categorize nodes
+  nodes.forEach(node => {
+    let categorized = false;
+    for (const [category, config] of Object.entries(categories)) {
+      if (config.types.includes(node.type)) {
+        categorizedNodes[category].push(node);
+        categorized = true;
+        break;
       }
     }
-    
-    // Default positioning for nodes without families
-    return {
-      ...node,
-      x: node.x || centerX + (Math.random() - 0.5) * width * 0.2,
-      y: node.y || centerY + (Math.random() - 0.5) * height * 0.2
-    };
+    if (!categorized) {
+      // Default to commercial if not categorized
+      categorizedNodes.commercial.push(node);
+    }
   });
+
+  // Position nodes within each category
+  const positionedNodes: PositionedNode[] = [];
+
+  Object.entries(categories).forEach(([categoryName, config]) => {
+    const categoryNodes = categorizedNodes[categoryName];
+    if (categoryNodes.length === 0) return;
+
+    const { position, layout, spacing } = config;
+    const nodeCount = categoryNodes.length;
+
+    categoryNodes.forEach((node, index) => {
+      let x: number, y: number;
+
+      switch (layout) {
+        case 'horizontal':
+          x = position.x + (index - (nodeCount - 1) / 2) * spacing;
+          y = position.y;
+          break;
+        
+        case 'grid':
+          const cols = Math.ceil(Math.sqrt(nodeCount));
+          const rows = Math.ceil(nodeCount / cols);
+          const col = index % cols;
+          const row = Math.floor(index / cols);
+          x = position.x + (col - (cols - 1) / 2) * spacing;
+          y = position.y + (row - (rows - 1) / 2) * spacing;
+          break;
+        
+        default:
+          x = position.x + (Math.random() - 0.5) * spacing;
+          y = position.y + (Math.random() - 0.5) * spacing;
+          break;
+      }
+
+      positionedNodes.push({
+        ...node,
+        x: Math.max(padding, Math.min(width - padding, x)),
+        y: Math.max(padding, Math.min(height - padding, y))
+      });
+    });
+  });
+
+  // Convert connections to D3 format for force simulation
+  const d3Links = connections.map(conn => ({
+    source: conn.from,
+    target: conn.to,
+    id: conn.id
+  }));
+
+  // Apply force simulation to fine-tune positions while maintaining category structure
+  const simulation = forceSimulation(positionedNodes)
+    .force('link', forceLink(d3Links)
+      .id((d: any) => d.id)
+      .distance(100)
+      .strength(0.1)
+    )
+    .force('charge', forceManyBody().strength(-300))
+    .force('collision', forceCollide().radius(50))
+    .force('center', forceCenter(centerX, centerY).strength(0.1))
+    .stop();
+
+  // Run simulation for fine-tuning
+  for (let i = 0; i < 50; i++) {
+    simulation.tick();
+  }
 
   return positionedNodes;
 };
@@ -438,8 +545,13 @@ export const detectBestLayout = (nodes: SimulationNode[], connections: Simulatio
   const maxPossibleConnections = nodeCount * (nodeCount - 1) / 2;
   const density = connectionCount / maxPossibleConnections;
 
+  // Count unique node types
+  const uniqueTypes = new Set(nodes.map(n => n.type)).size;
+  
   // Decision logic
-  if (familyCount > 0 && familyCount < nodeCount / 2) {
+  if (nodeCount > 50 && uniqueTypes > 5) {
+    return 'hierarchical'; // Best for large networks with diverse node types (like city networks)
+  } else if (familyCount > 0 && familyCount < nodeCount / 2) {
     return 'hierarchical'; // Good for family-based grouping
   } else if (nodeCount > 15 && density > 0.1) {
     return 'louvain'; // Good for complex graphs with communities
@@ -448,6 +560,6 @@ export const detectBestLayout = (nodes: SimulationNode[], connections: Simulatio
   } else if (nodeCount < 10) {
     return 'circular'; // Good for small graphs
   } else {
-    return 'force'; // Default to force-directed
+    return 'hierarchical'; // Default to hierarchical for better organization
   }
 };

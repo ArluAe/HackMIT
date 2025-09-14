@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSimulation } from '@/hooks/useSimulation';
+import { GraphExportData } from '@/types/simulation';
 import SimulationHeader from '@/components/simulation/SimulationHeader';
 import ControlPanel from '@/components/simulation/ControlPanel';
 import ReactFlowCanvas from '@/components/simulation/ReactFlowCanvas';
@@ -51,6 +52,7 @@ export default function SimulationWorkspace() {
     // Import/Export functions
     exportGraph,
     importGraph,
+    loadSimulationFromData,
     applyLayout,
     
     // Node creation modal
@@ -202,6 +204,30 @@ export default function SimulationWorkspace() {
   const handleApplyLayout = useCallback(() => {
     applyLayout();
   }, [applyLayout]);
+
+  // Load simulation data from sessionStorage on mount
+  useEffect(() => {
+    const loadedData = sessionStorage.getItem('loadedSimulationData');
+    if (loadedData) {
+      try {
+        const simulationData: GraphExportData = JSON.parse(loadedData);
+        const result = loadSimulationFromData(simulationData);
+        
+        if (result.success && result.viewport) {
+          setImportedViewport(result.viewport);
+          console.log('✅ Loaded simulation data from dashboard');
+        } else {
+          console.error('Failed to load simulation data:', result.error);
+        }
+        
+        // Clear the loaded data from sessionStorage
+        sessionStorage.removeItem('loadedSimulationData');
+      } catch (error) {
+        console.error('Failed to parse loaded simulation data:', error);
+        sessionStorage.removeItem('loadedSimulationData');
+      }
+    }
+  }, [loadSimulationFromData]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">

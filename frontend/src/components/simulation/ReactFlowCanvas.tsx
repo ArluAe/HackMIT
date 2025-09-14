@@ -440,8 +440,8 @@ export default function ReactFlowCanvas({
       
       if (currentLayer === 0) {
         // We're in individual view - check if we should switch to group view
-        // Simple zoom out threshold
-        if (newZoom <= 0.4) { // Switch to group view when zoomed out significantly
+        // Simple zoom out threshold - require 3x more zoom-out
+        if (newZoom <= 0.13) { // Switch to group view when zoomed out significantly (3x more)
           setIsZooming(true);
           setIsTransitioning(true);
           setLastSwitchTime(now);
@@ -453,8 +453,8 @@ export default function ReactFlowCanvas({
         }
       } else if (currentLayer > 0) {
         // We're in group view - check if we should drill down to individual view
-        // Simple zoom in threshold - much more aggressive
-        if (newZoom >= 1.2) { // Switch to individual view when zoomed in
+        // Simple zoom in threshold - require 3x more zoom-in
+        if (newZoom >= 3.6) { // Switch to individual view when zoomed in (3x more)
           setIsZooming(true);
           setIsTransitioning(true);
           setLastSwitchTime(now);
@@ -526,7 +526,7 @@ export default function ReactFlowCanvas({
         attributionPosition="bottom-left"
         className="bg-gray-900"
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-        minZoom={0.1}
+        minZoom={0.01}
         maxZoom={4}
         panOnDrag={!isSelectionMode}
         panOnScroll={false}

@@ -1,14 +1,45 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { loadCityModels, getCityModels, cityModelMetadata } from '@/services/cityModels';
+import { GraphExportData } from '@/types/simulation';
 
 export default function Dashboard() {
   const router = useRouter();
   const [isCreatingSimulation, setIsCreatingSimulation] = useState(false);
+  const [cityModels, setCityModels] = useState<{ compactCity: GraphExportData | null; largeCity: GraphExportData | null }>({
+    compactCity: null,
+    largeCity: null
+  });
+
+  // Load city models on component mount
+  useEffect(() => {
+    loadCityModels().then(() => {
+      setCityModels(getCityModels());
+    });
+  }, []);
 
   const handleCreateSimulation = () => {
     window.open('/simulation/new', '_blank');
+  };
+
+  const handleLoadCityModel = (modelId: string) => {
+    const { compactCity, largeCity } = cityModels;
+    let modelData: GraphExportData | null = null;
+
+    if (modelId === 'compact-city' && compactCity) {
+      modelData = compactCity;
+    } else if (modelId === 'large-city' && largeCity) {
+      modelData = largeCity;
+    }
+
+    if (modelData) {
+      // Store the model data in sessionStorage for the simulation workspace to load
+      sessionStorage.setItem('loadedSimulationData', JSON.stringify(modelData));
+      // Navigate to simulation workspace
+      router.push('/simulation/workspace');
+    }
   };
 
   // Mock data for dashboard
@@ -128,6 +159,68 @@ export default function Dashboard() {
                 </svg>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* City Models Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">🏙️ Pre-built City Models</h2>
+            <p className="text-gray-400 text-sm">Click to load directly into simulation</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {cityModelMetadata.map((model) => (
+              <div
+                key={model.id}
+                onClick={() => handleLoadCityModel(model.id)}
+                className={`metallic-card p-6 rounded-xl cursor-pointer hover:scale-105 transition-all duration-200 bg-gradient-to-br ${model.color} hover:shadow-lg hover:shadow-purple-500/20`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-3xl">{model.image}</div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white">{model.name}</h3>
+                      <p className="text-gray-200 text-sm">{model.description}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-white font-bold text-lg">{model.nodes} nodes</div>
+                    <div className="text-gray-200 text-sm">{model.families} families</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-black/20 rounded-lg p-3">
+                    <div className="text-gray-300">Connections</div>
+                    <div className="text-white font-semibold">{model.connections}</div>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-3">
+                    <div className="text-gray-300">Dimensions</div>
+                    <div className="text-white font-semibold">{model.dimensions}</div>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-3">
+                    <div className="text-gray-300">Initial Zoom</div>
+                    <div className="text-white font-semibold">{model.zoom}</div>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-3">
+                    <div className="text-gray-300">Status</div>
+                    <div className="text-green-400 font-semibold">Ready</div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="text-gray-300 text-sm">
+                    Click to load at Layer 0
+                  </div>
+                  <div className="text-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
