@@ -1,3 +1,5 @@
+from backend.agents import ConsumerAgent
+from backend.agents.ProducerAgent import ProducerAgent
 from .Node import Node
 from .Branch import Branch
 from collections import defaultdict
@@ -6,22 +8,27 @@ import numpy as np
 
 class PowerGrid:
     def __init__(self, ppc, dt, target_hz=60):
+
         self.size = len(ppc["bus"])
         self.branches = defaultdict(lambda : list())
         self.nodes = [None] * self.size
         self.dt = dt # minutes
         self.target_hz = target_hz
         self.grid_frequency = target_hz
-        self.temperature = 25 # Celsius
-        self.total_inerta = 0
+        self.total_inertia = 0
         
         for index in range(self.size):
+            def create_agent():
+                if index in ppc["gen"][:,0]:
+                    return ProducerAgent(agent_id=index, max_output=ppc["bus"][index, 1])
+                else:
+                    return ConsumerAgent(agent_id=index, energy_consumption=ppc["bus"][index, 1])
             node = ppc["bus"][index]
-            inertia = 1 # fix
-            friction = 1 # fix
-            new_node = Node(index, inertia, friction, dt, target_hz)
+            inertia = np.random.rand() # fix
+            friction = np.random.rand() # fix
+            new_node = Node(create_agent(), index, inertia, friction, dt, target_hz)
             self.nodes[index] = new_node
-            self.total_inerta += inertia
+            self.total_inertia += inertia
 
         for branch in ppc["branch"]:
             node0 = int(branch[0]) - 1
@@ -50,16 +57,12 @@ class PowerGrid:
         for node in self.nodes:
             node.time_step(state)
         
-        # Recalculate the grid frequency
+        # Calculate the pertubation of the grid frequency
         pertubation = 0
         for node in self.nodes:
             pertubation += (node.inertia * node.get_transmission())
-        
-        pertubation = pertubation / self.total_inerta
 
-        self.grid_frequency += pertubation * self.dt
-
-        print(f"Grid Frequency: {self.grid_frequency}")
+        print(f"Pertubation: {pertubation}")
 
 
     def simulate_day(self):
@@ -68,6 +71,14 @@ class PowerGrid:
         temps = 20 + warming_factor * -np.cos(time_values / (1440 - int(self.dt)) * 2 * np.pi - 180)
         for i in range(len(temps)):
             self.time_step(temps[i], time_values[i])
+
+    def gen_dict(self):
+        ret = dict()
+        ret["nodes"] = [node.gen_dict() for node in self.nodes]
+        return ret
+
+
+
 
 
 
