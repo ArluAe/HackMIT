@@ -1,0 +1,128 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "Test Simulation",
+    "description": "Test export for debugging layout issues",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "author": "Test User"
+  },
+  "simulation": {
+    "nodes": [
+      {
+        "id": "1",
+        "type": "generator",
+        "x": 0,
+        "y": 0,
+        "name": "Solar Panel 1",
+        "power": 500,
+        "status": "active",
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false
+      },
+      {
+        "id": "2",
+        "type": "consumer",
+        "x": 0,
+        "y": 0,
+        "name": "Factory 1",
+        "power": 300,
+        "status": "active",
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false
+      },
+      {
+        "id": "3",
+        "type": "storage",
+        "x": 0,
+        "y": 0,
+        "name": "Battery 1",
+        "power": 200,
+        "status": "active",
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false
+      },
+      {
+        "id": "4",
+        "type": "generator",
+        "x": 0,
+        "y": 0,
+        "name": "Wind Turbine",
+        "power": 400,
+        "status": "active",
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false
+      },
+      {
+        "id": "5",
+        "type": "consumer",
+        "x": 0,
+        "y": 0,
+        "name": "Residential",
+        "power": 150,
+        "status": "active",
+        "layer": 0,
+        "childNodes": [],
+        "isGroup": false
+      }
+    ],
+    "connections": [
+      {
+        "id": "1",
+        "from": "1",
+        "to": "2",
+        "power": 100,
+        "status": "active"
+      },
+      {
+        "id": "2",
+        "from": "2",
+        "to": "3",
+        "power": 50,
+        "status": "active"
+      },
+      {
+        "id": "3",
+        "from": "3",
+        "to": "4",
+        "power": 75,
+        "status": "active"
+      },
+      {
+        "id": "4",
+        "from": "4",
+        "to": "5",
+        "power": 60,
+        "status": "active"
+      },
+      {
+        "id": "5",
+        "from": "5",
+        "to": "1",
+        "power": 40,
+        "status": "active"
+      }
+    ],
+    "families": [],
+    "layers": [
+      {
+        "layer": 0,
+        "name": "Individual Nodes",
+        "description": "Base layer with individual components",
+        "nodeCount": 5
+      }
+    ]
+  },
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "settings": {
+    "simulationRunning": false,
+    "currentLayer": 0
+  }
+}
