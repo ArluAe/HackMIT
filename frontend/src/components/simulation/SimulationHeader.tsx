@@ -17,7 +17,6 @@ interface SimulationHeaderProps {
   // Import/Export props
   onExportGraph: () => void;
   onImportGraph: (file: File) => void;
-  onApplyLayout: () => void;
 }
 
 export default function SimulationHeader({
@@ -32,8 +31,7 @@ export default function SimulationHeader({
   onNavigateDown,
   onClearSelection,
   onExportGraph,
-  onImportGraph,
-  onApplyLayout
+  onImportGraph
 }: SimulationHeaderProps) {
   const router = useRouter();
 
@@ -91,11 +89,7 @@ export default function SimulationHeader({
             {/* Selection Mode Toggle */}
             <button
               onClick={onToggleSelectionMode}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                isSelectionMode 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-              }`}
+              className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm font-medium transition-colors"
             >
               {isSelectionMode ? 'Exit Select' : 'Select'}
             </button>
@@ -104,7 +98,7 @@ export default function SimulationHeader({
             {selectedNodes.length > 1 && (
               <button
                 onClick={onCreateGroup}
-                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium transition-colors"
+                className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm font-medium transition-colors"
               >
                 Create Group ({selectedNodes.length})
               </button>
@@ -158,17 +152,6 @@ export default function SimulationHeader({
               />
             </label>
 
-            {/* Layout Button */}
-            <button
-              onClick={onApplyLayout}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors flex items-center space-x-1"
-              title="Apply Smart Layout"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-              </svg>
-              <span>Layout</span>
-            </button>
           </div>
 
           <div className="flex items-center space-x-3">

@@ -53,7 +53,6 @@ export default function SimulationWorkspace() {
     exportGraph,
     importGraph,
     loadSimulationFromData,
-    applyLayout,
     
     // Node creation modal
     isNodeCreationModalOpen,
@@ -201,9 +200,6 @@ export default function SimulationWorkspace() {
     }
   }, [importGraph]);
 
-  const handleApplyLayout = useCallback(() => {
-    applyLayout();
-  }, [applyLayout]);
 
   // Load simulation data from sessionStorage on mount
   useEffect(() => {
@@ -244,7 +240,6 @@ export default function SimulationWorkspace() {
         onClearSelection={clearSelection}
         onExportGraph={handleExportGraph}
         onImportGraph={handleImportGraph}
-        onApplyLayout={handleApplyLayout}
       />
 
       <main className="flex h-[calc(100vh-3rem)]">
