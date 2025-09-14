@@ -190,7 +190,7 @@ const applyForceLayout = (
       x: hasValidPosition ? node.x : centerX + (Math.random() - 0.5) * width * 0.4,
       y: hasValidPosition ? node.y : centerY + (Math.random() - 0.5) * height * 0.4,
       type: node.type,
-      power: node.power,
+      power: node.settings.power,
       familyId: node.familyId
     };
   });
