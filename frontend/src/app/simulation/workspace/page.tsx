@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSimulation } from '@/hooks/useSimulation';
 import { GraphExportData } from '@/types/simulation';
+import { simulationEngine } from '@/services/simulationEngine';
 import SimulationHeader from '@/components/simulation/SimulationHeader';
 import ControlPanel from '@/components/simulation/ControlPanel';
 import ReactFlowCanvas from '@/components/simulation/ReactFlowCanvas';
@@ -200,6 +201,10 @@ export default function SimulationWorkspace() {
     }
   }, [importGraph]);
 
+  const handleViewAnalysis = useCallback(() => {
+    window.open('/simulation/analysis', '_blank');
+  }, []);
+
 
   // Load simulation data from sessionStorage on mount
   useEffect(() => {
@@ -225,6 +230,7 @@ export default function SimulationWorkspace() {
     }
   }, [loadSimulationFromData]);
 
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <SimulationHeader
@@ -240,7 +246,9 @@ export default function SimulationWorkspace() {
         onClearSelection={clearSelection}
         onExportGraph={handleExportGraph}
         onImportGraph={handleImportGraph}
+        onViewAnalysis={handleViewAnalysis}
       />
+
 
       <main className="flex h-[calc(100vh-3rem)]">
         <ControlPanel
@@ -308,6 +316,7 @@ export default function SimulationWorkspace() {
         onConfirm={handleFamilyNameConfirm}
         selectedNodeCount={pendingSelectedNodes.length}
       />
+
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Node, Connection, GraphExportData, FamilyGroup, LayerInfo } from '@/types/simulation';
 import { applySmartLayout, detectBestLayout, LayoutOptions } from '@/utils/graphLayout';
+import { simulationEngine } from '@/services/simulationEngine';
 
 export const useSimulation = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -157,7 +158,18 @@ export const useSimulation = () => {
   };
 
   const toggleSimulation = () => {
-    setIsSimulationRunning(!isSimulationRunning);
+    const newRunningState = !isSimulationRunning;
+    setIsSimulationRunning(newRunningState);
+    
+    if (newRunningState) {
+      // Start simulation
+      simulationEngine.start(nodes, connections);
+      // Navigate to analysis page
+      window.open('/simulation/analysis', '_blank');
+    } else {
+      // Stop simulation
+      simulationEngine.stop();
+    }
   };
 
   const getNetworkStats = () => {
