@@ -138,7 +138,7 @@ export default function ReactFlowCanvas({
                 isBubble: true,
                 onNavigateDown: onNavigateDown,
                 groupStats: {
-                  totalPower: familyNodes.reduce((sum, n) => sum + n.power, 0),
+                  totalPower: familyNodes.reduce((sum, n) => sum + n.settings.power, 0),
                   nodeCount: familyNodes.length,
                   activeConnections: 0,
                   childTypes: familyNodes.reduce((acc, n) => {
@@ -186,7 +186,7 @@ export default function ReactFlowCanvas({
                 isSelected: selectedNodes.includes(node.familyId!),
                 isSelectionMode,
                 groupStats: {
-                  totalPower: familyNodes.reduce((sum, n) => sum + n.power, 0),
+                  totalPower: familyNodes.reduce((sum, n) => sum + n.settings.power, 0),
                   nodeCount: familyNodes.length,
                   activeConnections: 0,
                   childTypes: familyNodes.reduce((acc, n) => {
