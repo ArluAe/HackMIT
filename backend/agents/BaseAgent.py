@@ -12,30 +12,27 @@ class BaseAgent(ABC):
 
     @abstractmethod
     def act(self, state):
-        """
-        Single action method: get observation, compute policy decision, execute action.
-
-        Args:
-            state: Environment state dictionary
-
-        Returns:
-            float: startup_rate * action (action already in [-1, 1])
-        """
+        """Decide how much to consume/produce based on current state."""
         pass
 
-    @abstractmethod
-    def compute_reward(self, state, all_agents):
-        """
-        Calculate reward based on state and other agents.
+    def compute_reward(self, state):
+        """Compute payoff based on current state and actions."""
+        return 0.0
 
-        Args:
-            state: Environment state dictionary
-            all_agents: List of all agents
-
-        Returns:
-            float: Reward value in [-1, 1] range
-        """
+    def update_state(self, dt):
+        """Apply stochastic process step - to be overridden by subclasses."""
         pass
+
+    def ornstein_uhlenbeck(self, x, mu, theta, sigma, dt):
+        """OU process for mean-reverting stochastic demand/supply."""
+        return x + theta * (mu - x) * dt + sigma * np.sqrt(dt) * np.random.randn()
+
+    def compound_poisson_jump(self, lambda_rate, jump_mean, jump_std, dt):
+        """Generate compound Poisson jumps."""
+        n_jumps = np.random.poisson(lambda_rate * dt)
+        if n_jumps > 0:
+            return np.sum(np.random.normal(jump_mean, jump_std, n_jumps))
+        return 0.0
 
     def update_reward(self, reward):
         self.episode_reward += reward

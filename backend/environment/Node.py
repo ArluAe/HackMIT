@@ -24,7 +24,10 @@ class Node:
         self.connections = connections
 
     def time_step(self, state):
+        # Get the agent's action based on current state
+        # (State update is now handled in PowerGrid)
         self.power = self.agent.act(state)
+        # Update node dynamics
         self.d2offset = self.power - self.friction * self.doffset + self.get_transmission()
         self.doffset += self.d2offset * self.dt
         self.offset += self.doffset * self.dt

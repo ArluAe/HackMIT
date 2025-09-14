@@ -1,0 +1,27 @@
+{
+  "config_name": "Large Mixed Grid",
+  "num_runs": 2,
+  "frequency_stability": {
+    "mean_std": 0.18014820945673043,
+    "range": [
+      0.17466684003090674,
+      0.1856295788825541
+    ]
+  },
+  "power_balance": {
+    "mean_imbalance_std": 28.47848481308509,
+    "range": [
+      26.056614262786766,
+      30.90035536338341
+    ]
+  },
+  "generation_mix": {
+    "solar_mean": 29.803295729896753,
+    "wind_mean": 50.64113433275917,
+    "total_renewable": 80.44443006265593
+  },
+  "battery_performance": {
+    "mean_utilization": 13.441794823936394,
+    "regulation_effectiveness": 97.1521515186915
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "config_name": "Small Renewable Grid",
+  "num_runs": 3,
+  "frequency_stability": {
+    "mean_std": 0.1299177057473829,
+    "range": [
+      0.0639471776305941,
+      0.16340175597354736
+    ]
+  },
+  "power_balance": {
+    "mean_imbalance_std": 22.48295535500434,
+    "range": [
+      20.14790604689702,
+      24.583920845240026
+    ]
+  },
+  "generation_mix": {
+    "solar_mean": 14.982061881795616,
+    "wind_mean": 24.946834012687457,
+    "total_renewable": 39.92889589448308
+  },
+  "battery_performance": {
+    "mean_utilization": 5.722852038556344,
+    "regulation_effectiveness": 97.75170446449957
+  }
+}

@@ -60,11 +60,17 @@ class PowerGrid:
         """Create appropriate agent based on node type from settings"""
         node_type = settings.get("type", "consumer")
         power = settings.get("power", 50.0)
-        
-        if node_type in ["generator", "solar-generator", "natural-gas-generator", "wind-generator"]:
-            return ProducerAgent(agent_id=node_id, max_output=power)
+
+        if node_type == "solar-generator":
+            return ProducerAgent(agent_id=node_id, max_output=power, kind="solar")
+        elif node_type == "wind-generator":
+            return ProducerAgent(agent_id=node_id, max_output=power, kind="wind")
+        elif node_type in ["generator", "natural-gas-generator"]:
+            return ProducerAgent(agent_id=node_id, max_output=power, kind="thermal")
         elif node_type == "consumer":
             return ConsumerAgent(agent_id=node_id, energy_consumption=power)
+        elif node_type == "business":
+            return BusinessAgent(agent_id=node_id, baseline_consumption=power)
         elif node_type == "storage":
             capacity = power
             charge_rate = settings.get("charge_rate", capacity * 0.5)
@@ -86,7 +92,7 @@ class PowerGrid:
         total_supply = 0
         total_demand = 0
 
-        for node in self.nodes:
+        for node in self.nodes.values():
             agent = node.agent
             if agent.delta_e > 0:  # Producing/discharging
                 total_supply += agent.delta_e
@@ -109,21 +115,46 @@ class PowerGrid:
         # Calculate current electricity price before actions
         current_price = self.calculate_electricity_price()
 
+        # STEP 1: Update all agent states first (stochastic processes)
+        for node in self.nodes.values():
+            node.agent.update_state(self.dt)
+
+        # STEP 2: Calculate supply and demand AFTER state updates
+        total_supply = 0
+        total_demand = 0
+        for node in self.nodes.values():
+            agent = node.agent
+            if hasattr(agent, 'supply') and agent.supply > 0:  # Producer agents
+                total_supply += agent.supply
+            elif hasattr(agent, 'demand') and agent.demand > 0:  # Consumer/Business agents
+                total_demand += agent.demand
+
         state = dict()
         state["frequency"] = self.grid_frequency
         state["avg_cost"] = current_price
         state["time_of_day"] = time_of_day
+        state["total_supply"] = total_supply
+        state["total_demand"] = total_demand
 
-        # Run time step process on all nodes PARALLELIZATION HERE
+        # STEP 3: Run agent actions (node.time_step will NOT call update_state again)
         for node in self.nodes.values():
             node.time_step(state)
         
-        # Calculate the pertubation of the grid frequency
-        pertubation = 0
+        # Calculate power imbalance and update frequency
+        total_power_imbalance = 0
         for node in self.nodes.values():
-            pertubation += (node.inertia * node.get_transmission())
+            total_power_imbalance += node.power  # Positive = generation, negative = consumption
 
-        print(f"Pertubation: {pertubation}")
+        # Update frequency based on power imbalance
+        # Real grid: df/dt = (P_gen - P_load) / (2 * H * S_base)
+        # Simplified: frequency deviation proportional to power imbalance
+        frequency_response = 0.01  # Hz per MW imbalance
+        self.grid_frequency += total_power_imbalance * frequency_response * self.dt
+
+        # Add some realistic bounds (grid frequency control keeps it close to 60Hz)
+        self.grid_frequency = np.clip(self.grid_frequency, 59.5, 60.5)
+
+        print(f"Power Imbalance: {total_power_imbalance:.1f} MW, Frequency: {self.grid_frequency:.3f} Hz")
 
         # Calculate new price after actions
         new_price = self.calculate_electricity_price()
@@ -135,9 +166,9 @@ class PowerGrid:
         updated_state["time_of_day"] = time_of_day
         updated_state["prev_cost"] = current_price  # Pass previous price for comparison
 
-        all_agents = [node.agent for node in self.nodes]
-        for node in self.nodes:
-            reward = node.agent.compute_reward(updated_state, all_agents)
+        all_agents = [node.agent for node in self.nodes.values()]
+        for node in self.nodes.values():
+            reward = node.agent.compute_reward(updated_state)
             node.agent.update_reward(reward)
 
 
