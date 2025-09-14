@@ -1,9 +1,9 @@
 import numpy as np
 from agents import ProducerAgent
 class Node:
-    def __init__(self, agent, index, inertia, friction, dt, target_hz):
+    def __init__(self, agent, node_id, inertia, friction, dt, target_hz):
         # Parameters
-        self.index = index
+        self.node_id = node_id  # Use node_id as the primary identifier
         self.inertia = inertia
         self.friction = friction
         self.connections = []
@@ -24,7 +24,7 @@ class Node:
 
     def time_step(self, state):
         self.power = self.agent.act(state)
-        self.d2offset = power - self.friction * self.doffset + self.get_transmission()
+        self.d2offset = self.power - self.friction * self.doffset + self.get_transmission()
         self.doffset += self.d2offset * self.dt
         self.offset += self.doffset * self.dt
     
@@ -39,7 +39,7 @@ class Node:
     
     def gen_dict(self):
         return {
-            "index": self.index,
+            "node_id": self.node_id,
             "inertia": self.inertia,
             "friction": self.friction,
             "power": self.power,
