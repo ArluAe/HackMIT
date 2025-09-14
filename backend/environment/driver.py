@@ -1,8 +1,8 @@
-from PowerGrid import PowerGrid
-from utils import get_daily_temperatures
+from .PowerGrid import PowerGrid
+from ..utils import get_daily_temperatures
 import time
 
-import case14
+from . import case14
 my_grid = PowerGrid(case14.case14(), 0.01)
 my_grid.simulate_day()
 

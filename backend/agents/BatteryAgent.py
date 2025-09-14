@@ -3,13 +3,18 @@ from agents.Policy import Policy
 import numpy as np
 
 class BatteryAgent(BaseAgent):
-    def __init__(self, agent_id, capacity, charge_rate, startup_rate=1.0, efficiency=0.9, soc=0.5, cost_function=None):
+    def __init__(self, agent_id, capacity, max_charge_rate=None, max_discharge_rate=None, charge_rate=None, startup_rate=1.0, efficiency=0.9, soc=0.5, cost_function=None):
         super().__init__(agent_id, cost_function)
         self.capacity = capacity
-        self.charge_rate = charge_rate
+        # Handle both old and new parameter names
+        self.max_charge_rate = max_charge_rate or charge_rate or capacity * 0.25
+        self.max_discharge_rate = max_discharge_rate or charge_rate or capacity * 0.25
+        self.charge_rate = charge_rate or max_charge_rate or capacity * 0.25
         self.startup_rate = startup_rate
         self.efficiency = efficiency
-        self.soc = soc
+        self.state_of_charge = soc  # Use consistent naming
+        self.soc = soc  # Keep for backward compatibility
+        self.current_charge_rate = 0.0
         self.total_arbitrage = 0.0
         self.policy = Policy(agent_type=3)  # Battery agent type
 

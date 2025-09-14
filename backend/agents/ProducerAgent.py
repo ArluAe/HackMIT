@@ -3,10 +3,13 @@ from agents.Policy import Policy
 import numpy as np
 
 class ProducerAgent(BaseAgent):
-    def __init__(self, agent_id, max_output, startup_rate=1.0, cost_function=None):
+    def __init__(self, agent_id, production_capacity=100.0, ramp_rate=10.0, startup_rate=1.0, cost_function=None):
         super().__init__(agent_id, cost_function)
-        self.max_output = max_output
+        self.production_capacity = production_capacity
+        self.max_output = production_capacity  # Backward compatibility
+        self.ramp_rate = ramp_rate
         self.startup_rate = startup_rate
+        self.current_production = 0.0
         self.policy = Policy(agent_type=2)  # Producer agent type
 
     def act(self, state):

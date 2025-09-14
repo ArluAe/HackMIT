@@ -1,0 +1,62 @@
+# IPPO Training Configuration
+
+# Training parameters
+n_episodes: 1000
+rollout_steps: 2048
+save_freq: 50
+eval_freq: 10
+n_eval_episodes: 5
+
+# PPO hyperparameters
+hidden_size: 64
+lr: 0.0003
+gamma: 0.99
+gae_lambda: 0.95
+clip_range: 0.2
+value_coef: 0.5
+entropy_coef: 0.01
+max_grad_norm: 0.5
+
+# Buffer parameters
+buffer_size: 2048
+batch_size: 64
+n_epochs: 10
+
+# Environment parameters
+env:
+  name: PowerGrid
+  max_steps_per_episode: 1000
+  reward_scale: 1.0
+
+# Agent-specific configurations
+agents:
+  consumer:
+    hidden_size: 64
+    lr: 0.0003
+  producer:
+    hidden_size: 64
+    lr: 0.0003
+  business:
+    hidden_size: 64
+    lr: 0.0003
+  battery:
+    hidden_size: 64
+    lr: 0.0003
+
+# Logging parameters
+log_dir: ./logs
+checkpoint_dir: ./checkpoints
+experiment_name: ippo_power_grid
+log_interval: 10
+verbose: true
+
+# Hardware
+device: auto  # auto, cpu, or cuda
+num_threads: 4
+
+# Evaluation
+eval:
+  deterministic: true
+  render: false
+  save_videos: false
+  video_freq: 100

@@ -3,10 +3,15 @@ from agents.Policy import Policy
 import numpy as np
 
 class BusinessAgent(BaseAgent):
-    def __init__(self, agent_id, baseline_consumption, startup_rate=1.0):
+    def __init__(self, agent_id, base_consumption=None, baseline_consumption=None, production_capacity=0, startup_rate=1.0):
         super().__init__(agent_id, cost_function=lambda e: abs(e) * 0.1)
-        self.baseline_consumption = baseline_consumption
+        # Handle both parameter names
+        self.base_consumption = base_consumption or baseline_consumption or 100
+        self.baseline_consumption = self.base_consumption  # Keep for backward compatibility
+        self.production_capacity = production_capacity
         self.startup_rate = startup_rate
+        self.net_consumption = self.base_consumption
+        self.current_production = 0
         self.policy = Policy(agent_type=0)  # Business agent type
 
     def act(self, state):

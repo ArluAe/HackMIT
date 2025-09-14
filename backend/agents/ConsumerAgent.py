@@ -3,10 +3,12 @@ from agents.Policy import Policy
 import numpy as np
 
 class ConsumerAgent(BaseAgent):
-    def __init__(self, agent_id, energy_consumption, startup_rate=1.0):
+    def __init__(self, agent_id, consumption_range=(50, 200), flexibility=0.2, startup_rate=1.0):
         super().__init__(agent_id, cost_function=None)
-        self.energy_consumption = energy_consumption
+        self.consumption_range = consumption_range
+        self.flexibility = flexibility
         self.startup_rate = startup_rate
+        self.current_consumption = np.mean(consumption_range)
         self.policy = Policy(agent_type=1)  # Consumer agent type
 
     def act(self, state):
