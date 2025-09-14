@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Node, Connection } from '@/types/simulation';
+import { simulationAPI, SimulationUpdate } from '@/services/simulationAPI';
 
 export const useSimulation = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -9,6 +10,8 @@ export const useSimulation = () => {
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStart, setConnectionStart] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [simulationData, setSimulationData] = useState<any>(null);
 
   const addNode = (type: Node['type']) => {
     const newNode: Node = {
