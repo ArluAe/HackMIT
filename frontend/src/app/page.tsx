@@ -22,7 +22,7 @@ export default function Dashboard() {
   }, []);
 
   const handleCreateSimulation = () => {
-    window.open('/simulation/new', '_blank');
+    router.push('/simulation/workspace');
   };
 
   const handleLoadCityModel = (modelId: string) => {
